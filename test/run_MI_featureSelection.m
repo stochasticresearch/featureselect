@@ -38,6 +38,10 @@ y = X(:,end); X = X(:,1:end-1);
 nancols = unique(col);
 X(:,nancols) = [];
 
+% save this matrix, which will actually be used with feature masks to test
+% classification performance
+save(fullfile(folder,dataset,'X.mat'),'X','y');
+
 %% Test the mRMR algorithm on various estimators of MI for different datasets
 
 % setup the estimators of MI
