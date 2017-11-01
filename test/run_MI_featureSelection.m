@@ -14,7 +14,7 @@ outputFname = 'arrhythmia.mat';
 X = import_arrhythmia(fullfile(folder,inputFname));
 save(fullfile(folder,outputFname),'X');
 
-%% setup the data
+%% setup the Arrhythmia data
 clear;
 clc;
 dbstop if error;
@@ -34,6 +34,32 @@ load(fullfile(folder,dataset,strcat(dataset,'.mat')));
 
 % drop NA columns
 y = X(:,end); X = X(:,1:end-1); 
+[row, col] = find(isnan(X));
+nancols = unique(col);
+X(:,nancols) = [];
+
+% save this matrix, which will actually be used with feature masks to test
+% classification performance
+save(fullfile(folder,dataset,'X.mat'),'X','y');
+
+%% setup the rna-seq data
+clear;
+clc;
+dbstop if error;
+
+dataset = 'rnaseq';
+if(ispc)
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results';
+elseif(ismac)
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results';
+else
+    folder = '/home/kiran/ownCloud/PhD/sim_results';
+end
+
+load(fullfile(folder,dataset,'data.mat'));
+load(fullfile(folder,dataset,'labels.mat'));
+y = double(labels');
+
 [row, col] = find(isnan(X));
 nancols = unique(col);
 X(:,nancols) = [];
@@ -68,8 +94,8 @@ fNames = {'ktau','knn_1','knn_6','knn_20','vme','ap','cim'};
                    
 % % some tests to make sure that the serial and parallel versions of the
 % % algorithm produce the same results
-% testIdx = 2;
-% K = 50;
+% testIdx = 1;
+% K = 10;
 % t1 = cputime;
 % fea1 = mrmr_mid_serial(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
 % t2 = cputime;
@@ -78,7 +104,6 @@ fNames = {'ktau','knn_1','knn_6','knn_20','vme','ap','cim'};
 % fprintf('SerialTime=%0.02f ParallelTime=%0.02f equal?=%d\n',t2-t1,t3-t2,isequal(fea1,fea2));
 
 numFeaturesToSelect = 50;
-
 for ii=1:length(fNames)
     fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
     fOut = fullfile(folder,dataset,fs_outputFname);

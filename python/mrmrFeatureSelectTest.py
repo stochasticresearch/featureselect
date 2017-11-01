@@ -8,14 +8,22 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import scipy.io as sio
+
 from sklearn.model_selection import train_test_split
-from sklearn import svm
 from sklearn.model_selection import cross_val_score
 
-miEstimators = ['ktau','knn_1','knn_6','knn_20','vme','ap','cim']
+from sklearn import preprocessing
+
+from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+#miEstimators = ['ktau','knn_1','knn_6','knn_20','vme','ap','cim']
+miEstimators = ['ktau','knn_1','knn_6','knn_20','ap','cim']
 
 numCV = 10
-SEED = 12345
+SEED = 123
 MAX_NUM_FEATURES = 20
 MAX_ITER = 1000
 
@@ -37,7 +45,7 @@ def readArrhythmiaData():
     
     return (X,y,miFeatureSelections)
 
-def evaluateSVC():
+def evaluateClassificationPerformance(classifierStr):
     (X,y,miFeatureSelections) = readArrhythmiaData()
     y = np.squeeze(np.asarray(y))
 
@@ -52,8 +60,21 @@ def evaluateSVC():
             colSelect = featureVec[0:ii]-1  # minus one to switch from index-by-1 (Matlab) 
                                             # to index-by-0 (Python)
             X_in = X[:,colSelect]
-            clf = svm.SVC(random_state=SEED,max_iter=MAX_ITER)
-            scores = cross_val_score(clf, X_in, y, cv=numCV)
+            # normalize
+            X_in = preprocessing.scale(X_in)
+
+            # we do it this way to force the random seed to be the same for each iteration
+            # to compare results more consistently
+            if(classifierStr=='SVC'):
+                classifier = svm.SVC(random_state=SEED,max_iter=MAX_ITER)
+            elif(classifierStr=='RandomForest'):
+                classifier = RandomForestClassifier(random_state=SEED)
+            elif(classifierStr=='KNN'):
+                classifier = KNeighborsClassifier()
+            elif(classifierStr=='AdaBoost'):
+                classifier = AdaBoostClassifier(random_state=SEED)
+
+            scores = cross_val_score(classifier, X_in, y, cv=numCV, n_jobs=-2)
 
             mu = scores.mean()
             sigma_sq = scores.std()*2
@@ -67,10 +88,19 @@ def evaluateSVC():
     return (resultsMean,resultsVar)
 
 
-
 if __name__=='__main__':
-    resultsMean, resultsVar = evaluateSVC()
-    for ii in range(resultsMean.shape[0]):
-        plt.plot(resultsMean[ii,:],label=miEstimators[ii])
-    plt.legend()
+
+    classifiersToTest = ['SVC','RandomForest','KNN','AdaBoost']
+
+    jj = 1
+    for classifierStr in classifiersToTest:
+        resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr)
+        plt.subplot(2, 2, jj)
+        for ii in range(resultsMean.shape[0]):
+            plt.plot(resultsMean[ii,:],label=miEstimators[ii])
+        plt.legend()
+        plt.title(classifierStr)
+
+        jj = jj + 1
+
     plt.show()
