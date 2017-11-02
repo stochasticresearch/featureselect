@@ -56,7 +56,8 @@ fea_base = idxs(1:K);
 
 fea(1) = idxs(1);
 
-KMAX = min(1000,nd); %500
+% KMAX = min(1000,nd); %500
+KMAX = nd;
 
 idxleft = idxs(2:KMAX);
 
@@ -80,7 +81,7 @@ for k=2:K
     % reshuffle mi_array to be the order intended
     mi_array(idxleft,curlastfea) = mi_array(1:ncand,curlastfea);
     c_mi = nanmean(mi_array(idxleft,:),2)';
-   
+    
     [tmp, fea(k)] = max(t_mi(1:ncand) - c_mi(1:ncand));
     tmpidx = fea(k); fea(k) = idxleft(tmpidx); idxleft(tmpidx) = [];
 

@@ -1,4 +1,4 @@
-function [fea] = mrmr_mid_serial(d, f, K, miFunctionHandle, miFunctionArgs)
+function [fea] = mrmr_mid_debug(d, f, K, miFunctionHandle, miFunctionArgs)
 % function [fea] = mrmr_mid_d(d, f, K)
 %
 % The MID scheme of minimum redundancy maximal relevance (mRMR) feature selection
@@ -67,6 +67,7 @@ fprintf('k=1 cost_time=(N/A) cur_fea=%d #left_cand=%d\n', ...
       fea(k), length(idxleft));
 end
 
+mi_array_parallel = nan(KMAX,K);
 for k=2:K
    t1=cputime;
    ncand = length(idxleft);
@@ -79,7 +80,23 @@ for k=2:K
    end
    [tmp, fea(k)] = max(t_mi(1:ncand) - c_mi(1:ncand));
 
+    t_mi_parallel = zeros(1,ncand); 
+    parfor i=1:ncand
+        t_mi_parallel(i) = miFunctionHandle(d(:,idxleft(i)), f, miFunctionArgs{:}); 
+        mi_array_parallel(i,curlastfea) = getmultimi(d(:,fea(curlastfea)), d(:,idxleft(i)), miFunctionHandle, miFunctionArgs);
+    end
+    % reshuffle mi_array to be the order intended
+    mi_array_parallel(idxleft,curlastfea) = mi_array_parallel(1:ncand,curlastfea);
+    c_mi_parallel = nanmean(mi_array_parallel(idxleft,:),2)';
+
+   if(~isequaln(t_mi_parallel,t_mi(1:ncand)) || ...
+      ~isequaln(c_mi(1:ncand),c_mi_parallel(1:ncand)))
+       1;
+   end
+   
    tmpidx = fea(k); fea(k) = idxleft(tmpidx); idxleft(tmpidx) = [];
+   
+   
    if bdisp==1
    fprintf('k=%d cost_time=%5.4f cur_fea=%d #left_cand=%d\n', ...
       k, cputime-t1, fea(k), length(idxleft));

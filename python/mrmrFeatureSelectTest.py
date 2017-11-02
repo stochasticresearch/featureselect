@@ -19,8 +19,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-#miEstimators = ['ktau','knn_1','knn_6','knn_20','vme','ap','cim']
-miEstimators = ['ktau','knn_1','knn_6','knn_20','ap','cim']
+miEstimators = ['ktau','knn_1','knn_6','knn_20','vme','ap','cim']
+# miEstimators = ['ktau','knn_1','knn_6','knn_20','ap','cim']
 
 numCV = 10
 SEED = 123
@@ -45,9 +45,31 @@ def readArrhythmiaData():
     
     return (X,y,miFeatureSelections)
 
-def evaluateClassificationPerformance(classifierStr):
-    (X,y,miFeatureSelections) = readArrhythmiaData()
-    y = np.squeeze(np.asarray(y))
+def readRnaSeqData():
+    if platform == "linux" or platform == "linux2":
+        folder = '/home/kiran/ownCloud/PhD/sim_results/rnaseq/'
+    elif platform == "darwin":
+        folder = '/Users/Kiran/ownCloud/PhD/sim_results/rnaseq/'
+    elif platform == "win32":
+        folder = 'C:\\Users\\kiran\\ownCloud\\PhD\\sim_results\\rnaseq'
+    z = sio.loadmat(os.path.join(folder,'X.mat'))
+    X = z['X']
+    y = z['y']
+
+    miFeatureSelections = {}
+    for miEstimator in miEstimators:
+        featureVec = sio.loadmat(os.path.join(folder,'rnaseq_fs_'+miEstimator+'.mat'))
+        miFeatureSelections[miEstimator] = featureVec['featureVec']
+    
+    return (X,y,miFeatureSelections)
+
+def evaluateClassificationPerformance(classifierStr, dataset):
+    if(dataset=='Arrhythmia'):
+        (X,y,miFeatureSelections) = readArrhythmiaData()
+        y = np.squeeze(np.asarray(y))
+    elif(dataset=='RnaSeq'):
+        (X,y,miFeatureSelections) = readRnaSeqData()
+        y = np.squeeze(np.asarray(y))
 
     resultsMean = np.zeros((len(miEstimators),MAX_NUM_FEATURES))
     resultsVar = np.zeros((len(miEstimators),MAX_NUM_FEATURES))
@@ -90,11 +112,12 @@ def evaluateClassificationPerformance(classifierStr):
 
 if __name__=='__main__':
 
+    datasetToTest = ['Arrhythmia','RnaSeq']
     classifiersToTest = ['SVC','RandomForest','KNN','AdaBoost']
 
     jj = 1
     for classifierStr in classifiersToTest:
-        resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr)
+        resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest[1])
         plt.subplot(2, 2, jj)
         for ii in range(resultsMean.shape[0]):
             plt.plot(resultsMean[ii,:],label=miEstimators[ii])

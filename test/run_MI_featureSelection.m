@@ -40,7 +40,9 @@ X(:,nancols) = [];
 
 % save this matrix, which will actually be used with feature masks to test
 % classification performance
-save(fullfile(folder,dataset,'X.mat'),'X','y');
+if(~exist(fullfile(folder,dataset,'X.mat'),'file'))
+    save(fullfile(folder,dataset,'X.mat'),'X','y');
+end
 
 %% setup the rna-seq data
 clear;
@@ -66,7 +68,9 @@ X(:,nancols) = [];
 
 % save this matrix, which will actually be used with feature masks to test
 % classification performance
-save(fullfile(folder,dataset,'X.mat'),'X','y');
+if(~exist(fullfile(folder,dataset,'X.mat'),'file'))
+    save(fullfile(folder,dataset,'X.mat'),'X','y');
+end
 
 %% Test the mRMR algorithm on various estimators of MI for different datasets
 
@@ -92,16 +96,19 @@ functionArgsCell    = {{};
                        {minScanIncr};};
 fNames = {'ktau','knn_1','knn_6','knn_20','vme','ap','cim'};
                    
-% % some tests to make sure that the serial and parallel versions of the
-% % algorithm produce the same results
+% some tests to make sure that the serial and parallel versions of the
+% algorithm produce the same results
 % testIdx = 1;
 % K = 10;
-% t1 = cputime;
+% tic;
+% 
 % fea1 = mrmr_mid_serial(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
-% t2 = cputime;
+% t2 = toc;
 % fea2 = mrmr_mid(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
-% t3 = cputime;
-% fprintf('SerialTime=%0.02f ParallelTime=%0.02f equal?=%d\n',t2-t1,t3-t2,isequal(fea1,fea2));
+% t3 = toc;
+% fprintf('SerialTime=%0.02f ParallelTime=%0.02f equal?=%d\n',t2,t3-t2,isequal(fea1,fea2));
+% fea1 = mrmr_mid_debug(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
+
 
 numFeaturesToSelect = 50;
 for ii=1:length(fNames)
