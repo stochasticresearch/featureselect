@@ -1,4 +1,6 @@
-function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs)
+function [fea] = mrmr_mid_parallel_old2(d, f, K, miFunctionHandle, miFunctionArgs)
+% function [fea] = mrmr_mid_d(d, f, K)
+%
 % The MID scheme of minimum redundancy maximal relevance (mRMR) feature selection
 % 
 % The parameters:
@@ -44,41 +46,57 @@ function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs)
 % Github: https://github.com/kkarrancsu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nd = size(d,2);
-KMAX = min(1000,nd); % the # of top features to consider when searching 
-                     % using the mRMR algorithm
+bdisp=0;
 
+nd = size(d,2);
+% nc = size(d,1);
+
+t1=cputime;
 t = zeros(1,nd);
 parfor i=1:nd
     t(i) = miFunctionHandle(d(:,i), f, miFunctionArgs{:});
 end
+% fprintf('calculate the marginal dmi costs %5.1fs.\n', cputime-t1);
 
-[~, idxsOriginal] = sort(-t);
-dd = d(:,idxsOriginal(1:KMAX));  % hash the data down for efficiency
+[tmp, idxs] = sort(-t);
+fea_base = idxs(1:K);
 
-fea(1) = 1;
-idxleft = 2:KMAX;
+fea(1) = idxs(1);
+
+% KMAX = min(1000,nd); %500
+KMAX = nd;
+
+idxleft = idxs(2:KMAX);
+
+k=1;
+if bdisp==1
+fprintf('k=1 cost_time=(N/A) cur_fea=%d #left_cand=%d\n', ...
+      fea(k), length(idxleft));
+end
 
 mi_array = nan(KMAX,K);
 for k=2:K
+    t1=cputime;
     ncand = length(idxleft);
     curlastfea = length(fea);
    
     t_mi = zeros(1,ncand); 
     parfor i=1:ncand
-        t_mi(i) = miFunctionHandle(dd(:,idxleft(i)), f, miFunctionArgs{:}); 
-        mi_array(i,curlastfea) = getmultimi(dd(:,fea(curlastfea)), dd(:,idxleft(i)), miFunctionHandle, miFunctionArgs);
+        t_mi(i) = miFunctionHandle(d(:,idxleft(i)), f, miFunctionArgs{:}); 
+        mi_array(i,curlastfea) = getmultimi(d(:,fea(curlastfea)), d(:,idxleft(i)), miFunctionHandle, miFunctionArgs);
     end
+    % reshuffle mi_array to be the order intended
     mi_array(idxleft,curlastfea) = mi_array(1:ncand,curlastfea);
     c_mi = nanmean(mi_array(idxleft,:),2)';
     
-    [~, fea(k)] = max(t_mi(1:ncand) - c_mi(1:ncand));
+    [tmp, fea(k)] = max(t_mi(1:ncand) - c_mi(1:ncand));
     tmpidx = fea(k); fea(k) = idxleft(tmpidx); idxleft(tmpidx) = [];
 
+    if bdisp==1
+    fprintf('k=%d cost_time=%5.4f cur_fea=%d #left_cand=%d\n', ...
+       k, cputime-t1, fea(k), length(idxleft));
+    end
 end
-
-% map the features back to the original features
-fea = idxsOriginal(fea);
 
 return;
 
