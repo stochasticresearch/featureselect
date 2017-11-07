@@ -1,10 +1,17 @@
-function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs)
+function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs, KMAX_in)
 % The MID scheme of minimum redundancy maximal relevance (mRMR) feature selection
 % 
 % The parameters:
 %  d - a N*M matrix, indicating N samples, each having M dimensions. Must be integers.
 %  f - a N*1 matrix (vector), indicating the class/category of the N samples. Must be categorical.
 %  K - the number of features need to be selected
+%  miFunctionHandle - Function handle to the estimator of mutual
+%                     information
+%  miFunctionArgs - Cell array of the arguments required for this estimator
+%                   of mutual information (after X & Y)
+%  KMAX_in - the maximum number of top ranking features to consider when
+%            doing feature selection.  The larger teh number, the better
+%            the results, but also more computation required
 %
 % Note: This version only supports discretized data, thus if you have continuous data in "d", you 
 %       will need to discretize them first. This function needs the mutual information computation 
@@ -45,8 +52,12 @@ function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nd = size(d,2);
-KMAX = min(1000,nd); % the # of top features to consider when searching 
+if(nargin<6)
+    KMAX = min(1000,nd); % the # of top features to consider when searching 
                      % using the mRMR algorithm
+else
+    KMAX = min(KMAX_in,nd);
+end
 
 t = zeros(1,nd);
 parfor i=1:nd
