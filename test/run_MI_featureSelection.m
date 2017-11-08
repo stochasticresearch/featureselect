@@ -72,6 +72,24 @@ if(~exist(fullfile(folder,dataset,'X.mat'),'file'))
     save(fullfile(folder,dataset,'X.mat'),'X','y');
 end
 
+%% setup the arcene data
+clear;
+clc;
+dbstop if error;
+
+dataset = 'arcene';
+if(ispc)
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results';
+elseif(ismac)
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results';
+else
+    folder = '/home/kiran/ownCloud/PhD/sim_results';
+end
+
+load(fullfile(folder,dataset,'data.mat'));
+X = double(X_train);
+y = double(y_train);
+
 %% Test the mRMR algorithm on various estimators of MI for different datasets
 
 % setup the estimators of MI
