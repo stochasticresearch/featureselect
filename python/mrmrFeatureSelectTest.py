@@ -24,7 +24,7 @@ miEstimators = ['ktau','knn_1','knn_6','knn_20','ap','cim']
 
 numCV = 10
 SEED = 123
-MAX_NUM_FEATURES = 5
+MAX_NUM_FEATURES = 20
 MAX_ITER = 1000
 
 def readArrhythmiaData():
@@ -71,27 +71,36 @@ def readArceneData():
     elif platform == "win32":
         folder = 'C:\\Users\\kiran\\ownCloud\\PhD\\sim_results\\arcene'
     z = sio.loadmat(os.path.join(folder,'data.mat'))
-    X = z['X_valid']
-    y = z['y_valid']
+    
+    X_train = z['X_train']
+    y_train = z['y_train']
+    X_valid = z['X_valid']
+    y_valid = z['y_valid']
 
     miFeatureSelections = {}
     for miEstimator in miEstimators:
         featureVec = sio.loadmat(os.path.join(folder,'arcene_fs_'+miEstimator+'.mat'))
         miFeatureSelections[miEstimator] = featureVec['featureVec']
     
-    return (X,y,miFeatureSelections)
+    return (X_train,y_train,X_valid,y_valid,miFeatureSelections)
 
 
 def evaluateClassificationPerformance(classifierStr, dataset):
     if(dataset=='Arrhythmia'):
         (X,y,miFeatureSelections) = readArrhythmiaData()
         y = np.squeeze(np.asarray(y))
+        numCV_val = numCV
     elif(dataset=='RnaSeq'):
         (X,y,miFeatureSelections) = readRnaSeqData()
         y = np.squeeze(np.asarray(y))
+        numCV_val = numCV
     elif(dataset=='Arcene'):
-        (X,y,miFeatureSelections) = readArceneData()
-        y = np.squeeze(np.asarray(y))
+        (X_train,y_train,X_valid,y_valid,miFeatureSelections) = readArceneData()
+        y_train = np.squeeze(np.asarray(y_train))
+        y_valid = np.squeeze(np.asarray(y_valid))
+        numCV_val = 1  # we don't do cross-validation here b/c the data is split between
+                       # train/test/validation already, so we just test on the validation
+                       # set directly w/out CV
 
     resultsMean = np.zeros((len(miEstimators),MAX_NUM_FEATURES))
     resultsVar = np.zeros((len(miEstimators),MAX_NUM_FEATURES))
@@ -103,10 +112,6 @@ def evaluateClassificationPerformance(classifierStr, dataset):
         for ii in range(1,K+1):
             colSelect = featureVec[0:ii]-1  # minus one to switch from index-by-1 (Matlab) 
                                             # to index-by-0 (Python)
-            X_in = X[:,colSelect]
-            # normalize
-            X_in = preprocessing.scale(X_in)
-
             # we do it this way to force the random seed to be the same for each iteration
             # to compare results more consistently
             if(classifierStr=='SVC'):
@@ -118,7 +123,20 @@ def evaluateClassificationPerformance(classifierStr, dataset):
             elif(classifierStr=='AdaBoost'):
                 classifier = AdaBoostClassifier(random_state=SEED)
 
-            scores = cross_val_score(classifier, X_in, y, cv=numCV, n_jobs=-2)
+            if(numCV_val>1):
+                X_in = X[:,colSelect]
+                # normalize
+                X_in = preprocessing.scale(X_in)
+                scores = cross_val_score(classifier, X_in, y, cv=numCV, n_jobs=-2)
+            else:
+                X_train_in = X_train[:,colSelect]
+                X_valid_in = X_valid[:,colSelect]
+                # normalize
+                X_train_in = preprocessing.scale(X_train_in)
+                X_valid_in = preprocessing.scale(X_valid_in)
+
+                clf = classifier.fit(X_train_in,y_train)
+                scores = np.asarray([clf.score(X_valid_in,y_valid)])
 
             mu = scores.mean()
             sigma_sq = scores.std()*2
@@ -137,15 +155,18 @@ if __name__=='__main__':
     datasetToTest = ['Arrhythmia','RnaSeq','Arcene']
     classifiersToTest = ['SVC','RandomForest','KNN']
 
+    datasetIdx = 1
     jj = 1
     for classifierStr in classifiersToTest:
-        resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest[0])
+        resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest[datasetIdx])
         plt.subplot(1, 3, jj)
         for ii in range(resultsMean.shape[0]):
             plt.plot(range(1,len(resultsMean[ii,:])+1),resultsMean[ii,:],label=miEstimators[ii])
+            plt.xticks(np.arange(1,len(resultsMean[ii,:])+1,3))
         plt.legend()
         plt.title(classifierStr)
 
         jj = jj + 1
 
+    plt.suptitle(datasetToTest[datasetIdx])
     plt.show()
