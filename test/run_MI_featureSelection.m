@@ -114,28 +114,29 @@ functionArgsCell    = {{};
                        {minScanIncr};};
 fNames = {'ktau','knn_1','knn_6','knn_20','vme','ap','cim'};
                    
-% some tests to make sure that the serial and parallel versions of the
-% algorithm produce the same results
-testIdx = 1;
-K = 30;
-tic;
+% % some tests to make sure that the serial and parallel versions of the
+% % algorithm produce the same results
+% testIdx = 1;
+% K = 30;
+% tic;
+% 
+% fea1 = mrmr_mid_serial(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
+% fea2 = mrmr_mid(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
+% % fea3 = mrmr_mid_parallel_old2(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
+% % fprintf('1==2?=%d 1==3?=%d\n',isequal(fea1,fea2), isequal(fea1,fea3));
+% fprintf('1==2?=%d\n',isequal(fea1,fea2));
+% 
+% % fea1 = mrmr_mid_debug(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
 
-fea1 = mrmr_mid_serial(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
-fea2 = mrmr_mid(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
-fea3 = mrmr_mid_parallel(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
-fprintf('1==2?=%d 1==3?=%d\n',isequal(fea1,fea2), isequal(fea1,fea3));
 
-% fea1 = mrmr_mid_debug(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
-
-
-% numFeaturesToSelect = 50;
-% for ii=1:length(fNames)
-%     fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
-%     fOut = fullfile(folder,dataset,fs_outputFname);
-%     fprintf('Processing %s -- %s\n',fNames{ii},fOut);
-%     % if file exists, don't re-do it!
-%     if(~exist(fOut,'file'))
-%         featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
-%         save(fOut,'featureVec');
-%     end
-% end
+numFeaturesToSelect = 50;
+for ii=1:length(fNames)
+    fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
+    fOut = fullfile(folder,dataset,fs_outputFname);
+    fprintf('Processing %s -- %s\n',fNames{ii},fOut);
+    % if file exists, don't re-do it!
+    if(~exist(fOut,'file'))
+        featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
+        save(fOut,'featureVec');
+    end
+end
