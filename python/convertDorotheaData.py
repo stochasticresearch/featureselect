@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Converts the arcene training/validation data from .data files into .mat
+Converts the dorothea training/validation data from .data files into .mat
 files for speed of processing in Matlab
 '''
 
@@ -12,11 +12,11 @@ from sys import platform
 
 if __name__=='__main__':
     if platform == "linux" or platform == "linux2":
-        folder = '/home/kiran/ownCloud/PhD/sim_results/dorothea/'
+        folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge/dorothea/'
     elif platform == "darwin":
-        folder = '/Users/Kiran/ownCloud/PhD/sim_results/dorothea/'
+        folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge/dorothea/'
     elif platform == "win32":
-        folder = 'C:\\Users\\kiran\\ownCloud\\PhD\\sim_results\\dorothea'
+        folder = 'C:\\Users\\kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge\\dorothea'
 
     X_train = os.path.join(folder,'dorothea_train.data')
     y_train = os.path.join(folder,'dorothea_train.labels')

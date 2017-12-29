@@ -20,57 +20,22 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 #miEstimators = ['ktau','knn_1','knn_6','knn_20','vme','ap','cim']
-miEstimators = ['ktau','knn_1','knn_6','knn_20','ap','cim']
+#miEstimators = ['ktau','knn_1','knn_6','knn_20','ap','cim']
+#miEstimators = ['ktau','knn_1','knn_6','knn_20','vme', 'ap']
+#miEstimators = ['ktau','knn_6','knn_20','vme', 'ap']
+#miEstimators = ['ktau','knn_6','knn_20','ap']
+miEstimators = ['ktau','ap']
 
 numCV = 10
 SEED = 123
 MAX_NUM_FEATURES = 20
 MAX_ITER = 1000
 
-def readArrhythmiaData():
-    if platform == "linux" or platform == "linux2":
-        folder = '/home/kiran/ownCloud/PhD/sim_results/arrhythmia/'
-    elif platform == "darwin":
-        folder = '/Users/Kiran/ownCloud/PhD/sim_results/arrhythmia/'
-    elif platform == "win32":
-        folder = 'C:\\Users\\kiran\\ownCloud\\PhD\\sim_results\\arrhythmia'
-    z = sio.loadmat(os.path.join(folder,'X.mat'))
-    X = z['X']
-    y = z['y']
+folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge')
 
-    miFeatureSelections = {}
-    for miEstimator in miEstimators:
-        featureVec = sio.loadmat(os.path.join(folder,'arrhythmia_fs_'+miEstimator+'.mat'))
-        miFeatureSelections[miEstimator] = featureVec['featureVec']
-    
-    return (X,y,miFeatureSelections)
-
-def readRnaSeqData():
-    if platform == "linux" or platform == "linux2":
-        folder = '/home/kiran/ownCloud/PhD/sim_results/rnaseq/'
-    elif platform == "darwin":
-        folder = '/Users/Kiran/ownCloud/PhD/sim_results/rnaseq/'
-    elif platform == "win32":
-        folder = 'C:\\Users\\kiran\\ownCloud\\PhD\\sim_results\\rnaseq'
-    z = sio.loadmat(os.path.join(folder,'X.mat'))
-    X = z['X']
-    y = z['y']
-
-    miFeatureSelections = {}
-    for miEstimator in miEstimators:
-        featureVec = sio.loadmat(os.path.join(folder,'rnaseq_fs_'+miEstimator+'.mat'))
-        miFeatureSelections[miEstimator] = featureVec['featureVec']
-    
-    return (X,y,miFeatureSelections)
-
-def readArceneData():
-    if platform == "linux" or platform == "linux2":
-        folder = '/home/kiran/ownCloud/PhD/sim_results/arcene/'
-    elif platform == "darwin":
-        folder = '/Users/Kiran/ownCloud/PhD/sim_results/arcene/'
-    elif platform == "win32":
-        folder = 'C:\\Users\\kiran\\ownCloud\\PhD\\sim_results\\arcene'
-    z = sio.loadmat(os.path.join(folder,'data.mat'))
+def readNips2003Data(dataset):
+    ds_lower = dataset.lower()
+    z = sio.loadmat(os.path.join(folder,ds_lower,'data.mat'))
     
     X_train = z['X_train']
     y_train = z['y_train']
@@ -79,28 +44,19 @@ def readArceneData():
 
     miFeatureSelections = {}
     for miEstimator in miEstimators:
-        featureVec = sio.loadmat(os.path.join(folder,'arcene_fs_'+miEstimator+'.mat'))
+        featureVec = sio.loadmat(os.path.join(folder,ds_lower,ds_lower+'_fs_'+miEstimator+'.mat'))
         miFeatureSelections[miEstimator] = featureVec['featureVec']
     
-    return (X_train,y_train,X_valid,y_valid,miFeatureSelections)
-
+    return (X_train,y_train,X_valid,y_valid,miFeatureSelections)    
 
 def evaluateClassificationPerformance(classifierStr, dataset):
-    if(dataset=='Arrhythmia'):
-        (X,y,miFeatureSelections) = readArrhythmiaData()
-        y = np.squeeze(np.asarray(y))
-        numCV_val = numCV
-    elif(dataset=='RnaSeq'):
-        (X,y,miFeatureSelections) = readRnaSeqData()
-        y = np.squeeze(np.asarray(y))
-        numCV_val = numCV
-    elif(dataset=='Arcene'):
-        (X_train,y_train,X_valid,y_valid,miFeatureSelections) = readArceneData()
-        y_train = np.squeeze(np.asarray(y_train))
-        y_valid = np.squeeze(np.asarray(y_valid))
-        numCV_val = 1  # we don't do cross-validation here b/c the data is split between
-                       # train/test/validation already, so we just test on the validation
-                       # set directly w/out CV
+    (X_train,y_train,X_valid,y_valid,miFeatureSelections) = readNips2003Data(dataset)
+    
+    y_train = np.squeeze(np.asarray(y_train))
+    y_valid = np.squeeze(np.asarray(y_valid))
+    numCV_val = 1  # we don't do cross-validation here b/c the data is split between
+                   # train/test/validation already, so we just test on the validation
+                   # set directly w/out CV
 
     resultsMean = np.zeros((len(miEstimators),MAX_NUM_FEATURES))
     resultsVar = np.zeros((len(miEstimators),MAX_NUM_FEATURES))
@@ -151,22 +107,25 @@ def evaluateClassificationPerformance(classifierStr, dataset):
 
 
 if __name__=='__main__':
-
-    datasetToTest = ['Arrhythmia','RnaSeq','Arcene']
+    datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
     classifiersToTest = ['SVC','RandomForest','KNN']
 
-    datasetIdx = 1
-    jj = 1
-    for classifierStr in classifiersToTest:
-        resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest[datasetIdx])
-        plt.subplot(1, 3, jj)
-        for ii in range(resultsMean.shape[0]):
-            plt.plot(range(1,len(resultsMean[ii,:])+1),resultsMean[ii,:],label=miEstimators[ii])
-            plt.xticks(np.arange(1,len(resultsMean[ii,:])+1,3))
-        plt.legend()
-        plt.title(classifierStr)
+    for datasetIdx in range(len(datasetsToTest)):
+        fig = plt.figure()
 
-        jj = jj + 1
+        datasetToTest = datasetsToTest[datasetIdx]
+        jj = 1
+        for classifierStr in classifiersToTest:
+            resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest)
+            ax = fig.add_subplot(1, 3, jj)
+            for ii in range(resultsMean.shape[0]):
+                ax.plot(range(1,len(resultsMean[ii,:])+1),resultsMean[ii,:],label=miEstimators[ii])
+                ax.set_xticks(np.arange(2,len(resultsMean[ii,:])+1,4))
+            ax.legend()
+            ax.set_title(classifierStr)
 
-    plt.suptitle(datasetToTest[datasetIdx])
+            jj = jj + 1
+
+        fig.suptitle(datasetToTest)
+
     plt.show()

@@ -3,18 +3,18 @@ clear;
 clc;
 
 if(ispc)
-    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\arrhythmia';
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge\\arrhythmia';
 elseif(ismac)
-    folder = '/Users/Kiran/ownCloud/PhD/sim_results/arrhythmia';
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge/arrhythmia';
 else
-    folder = '/home/kiran/ownCloud/PhD/sim_results/arrhythmia';
+    folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge/arrhythmia';
 end
 inputFname = 'arrhythmia.data';
 outputFname = 'arrhythmia.mat';
 X = import_arrhythmia(fullfile(folder,inputFname));
 save(fullfile(folder,outputFname),'X');
 
-%% setup the Arrhythmia data
+%% load the Arrhythmia data
 clear;
 clc;
 dbstop if error;
@@ -23,11 +23,11 @@ dbstop if error;
 dataset = 'arrhythmia';
 
 if(ispc)
-    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results';
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
 elseif(ismac)
-    folder = '/Users/Kiran/ownCloud/PhD/sim_results';
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
 else
-    folder = '/home/kiran/ownCloud/PhD/sim_results';
+    folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
 end
 
 load(fullfile(folder,dataset,strcat(dataset,'.mat')));
@@ -44,18 +44,19 @@ if(~exist(fullfile(folder,dataset,'X.mat'),'file'))
     save(fullfile(folder,dataset,'X.mat'),'X','y');
 end
 
-%% setup the rna-seq data
+
+%% load the rna-seq data
 clear;
 clc;
 dbstop if error;
 
 dataset = 'rnaseq';
 if(ispc)
-    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results';
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
 elseif(ismac)
-    folder = '/Users/Kiran/ownCloud/PhD/sim_results';
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
 else
-    folder = '/home/kiran/ownCloud/PhD/sim_results';
+    folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
 end
 
 load(fullfile(folder,dataset,'data.mat'));
@@ -72,25 +73,34 @@ if(~exist(fullfile(folder,dataset,'X.mat'),'file'))
     save(fullfile(folder,dataset,'X.mat'),'X','y');
 end
 
-%% setup the arcene data
+%% Setup the NIPS Datasets data using routines provided
+
 clear;
 clc;
 dbstop if error;
 
-dataset = 'arcene';
 if(ispc)
-    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results';
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
 elseif(ismac)
-    folder = '/Users/Kiran/ownCloud/PhD/sim_results';
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
 else
-    folder = '/home/kiran/ownCloud/PhD/sim_results';
+    folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+end
+datasets = {'dexter','dorothea','arcene','gisette','madelon'};
+
+for dataset=datasets
+    [y_train, y_valid, y_test, X_train, X_valid, X_test] = ...
+        read_nips2003_data(fullfile('/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge',dataset,dataset));
+    X_train = full(X_train);
+    X_valid = full(X_valid);
+    save(fullfile(folder,dataset,'data.mat'), 'X_train', 'X_valid', 'X_test', 'y_train', 'y_valid', 'y_test');
 end
 
-load(fullfile(folder,dataset,'data.mat'));
-X = double(X_train);
-y = double(y_train);
-
 %% Test the mRMR algorithm on various estimators of MI for different datasets
+
+clear;
+clc;
+dbstop if error;
 
 % setup the estimators of MI
 minScanIncr = 0.015625;
@@ -98,23 +108,55 @@ knn_1 = 1;
 knn_6 = 6;
 knn_20 = 20;
 
-functionHandlesCell = {@ktau_mi;
+functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @vmeMI_interface;
-                       @apMI_interface;
-                       @cim_mi;};
-functionArgsCell    = {{};
+                       @apMI_interface;};
+
+functionArgsCell    = {{0,1,0};
                        {knn_1};
                        {knn_6};
                        {knn_20};
                        {};
-                       {};
-                       {minScanIncr};};
-fNames = {'ktau','knn_1','knn_6','knn_20','vme','ap','cim'};
-                   
-% % some tests to make sure that the serial and parallel versions of the
+                       {};};
+fNames = {'ktau','knn_1','knn_6','knn_20','vme','ap'};
+
+datasets = {'dexter','dorothea','arcene','gisette','madelon'};
+
+dispstat('','init'); % One time only initialization
+dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
+
+for dIdx=1:length(datasets)
+    dataset = datasets{dIdx};
+    if(ispc)
+        folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
+    elseif(ismac)
+        folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    else
+        folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    end
+    dispstat(sprintf('Processing %s',dataset),'keepthis', 'timestamp');
+
+    load(fullfile(folder,dataset,'data.mat'));
+    X = double(X_train);
+    y = double(y_train);
+
+    numFeaturesToSelect = 50;
+    for ii=1:length(fNames)
+        fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
+        fOut = fullfile(folder,dataset,fs_outputFname);
+        dispstat(sprintf('\t> Processing %s',fNames{ii}),'keepthis', 'timestamp');
+        % if file exists, don't re-do it!
+        if(~exist(fOut,'file'))
+            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
+            save(fOut,'featureVec');
+        end
+    end
+end
+%% some tests to make sure that the serial and parallel versions of the
+
 % % algorithm produce the same results
 % testIdx = 1;
 % K = 30;
@@ -127,16 +169,3 @@ fNames = {'ktau','knn_1','knn_6','knn_20','vme','ap','cim'};
 % fprintf('1==2?=%d\n',isequal(fea1,fea2));
 % 
 % % fea1 = mrmr_mid_debug(X, y, K, functionHandlesCell{testIdx}, functionArgsCell{testIdx})
-
-
-numFeaturesToSelect = 50;
-for ii=1:length(fNames)
-    fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
-    fOut = fullfile(folder,dataset,fs_outputFname);
-    fprintf('Processing %s -- %s\n',fNames{ii},fOut);
-    % if file exists, don't re-do it!
-    if(~exist(fOut,'file'))
-        featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
-        save(fOut,'featureVec');
-    end
-end
