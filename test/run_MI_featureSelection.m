@@ -150,8 +150,10 @@ for dIdx=1:length(datasets)
         dispstat(sprintf('\t> Processing %s',fNames{ii}),'keepthis', 'timestamp');
         % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
+            tic;
             featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
-            save(fOut,'featureVec');
+            elapsedTime = toc;
+            save(fOut,'featureVec','elapsedTime');
         end
     end
 end
