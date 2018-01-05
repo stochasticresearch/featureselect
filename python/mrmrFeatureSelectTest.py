@@ -21,7 +21,10 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 miEstimators = ['ktau','knn_1','knn_6','knn_20','vme', 'ap']
-
+classifiersToTest = ['SVC','RandomForest','KNN']
+datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
+enableCV = True
+    
 NUM_CV = 10
 SEED = 123
 MAX_NUM_FEATURES = 50
@@ -109,23 +112,16 @@ def evaluateClassificationPerformance(classifierStr, dataset, enableCV=False):
 
 
 if __name__=='__main__':
-    datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
-    classifiersToTest = ['SVC','RandomForest','KNN']
-    enableCV = True
-
     if(enableCV):
         postPend = '_yesCV'
     else:
         postPend = '_noCV'
-
     resultsDir = os.path.join(folder, 'classification_results')
 
+    # run the ML
     for datasetIdx in range(len(datasetsToTest)):
-        print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)
-        
-        fig = plt.figure()
+        print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
         datasetToTest = datasetsToTest[datasetIdx]
-        jj = 1
         for classifierStr in classifiersToTest:
             fname = os.path.join(resultsDir,datasetToTest+'_'+classifierStr+postPend+'.pkl')
             if os.path.exists(fname):
@@ -144,15 +140,59 @@ if __name__=='__main__':
             with open(fname,'wb') as f:
                 pickle.dump(dataDict,f)
 
-            ax = fig.add_subplot(1, 3, jj)
-            for ii in range(resultsMean.shape[0]):
-                ax.plot(range(1,len(resultsMean[ii,:])+1),resultsMean[ii,:],label=miEstimators[ii])
-                ax.set_xticks(np.arange(5,len(resultsMean[ii,:])+5,5))
-            ax.legend()
-            ax.set_title(classifierStr)
+    # plot the stuff & store
+    estimatorsLegend = map(lambda x:x.upper(),miEstimators)
+    estimatorsLegend[estimatorsLegend.index('KTAU')] = r'$\tau_{KL}$'
+    estimatorsLegend[estimatorsLegend.index('VME')] = 'vME'
+    estimatorsLegend[estimatorsLegend.index('KNN_1')] = r'$KNN_1$'
+    estimatorsLegend[estimatorsLegend.index('KNN_6')] = r'$KNN_6$'
+    estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
-            jj = jj + 1
+    resultsDir = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge',
+                          'classification_results')
+    for dataset in datasetsToTest:
+        outputFname = os.path.join(resultsDir,'..','figures','realworld_data_sims',dataset+'.png')
+        
+        fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,4))
 
-        fig.suptitle(datasetToTest)
+        yMinVal = 1.0
+        yMaxVal = 0.0
+        for cIdx in range(len(classifiersToTest)):
+            classifier = classifiersToTest[cIdx]
+            f = os.path.join(resultsDir,dataset+'_'+classifier+postPend+'.pkl')
+            with open(f,'rb') as f:
+                z = pickle.load(f)
 
-    plt.show()
+            lineHandlesVec = []
+            for estimatorIdx in range(z['resultsMean'].shape[0]):
+                resultsMean = z['resultsMean'][estimatorIdx,:]
+                results2Var = z['resultsVar'][estimatorIdx,:]
+                resultsStd = np.sqrt(results2Var/2.)
+                xx = range(1,len(resultsMean)+1)
+
+                y = resultsMean
+                h = ax[cIdx].plot(xx, y)
+                if(enableCV):
+                    yLo = resultsMean-results2Var/2.
+                    yHi = resultsMean+results2Var/2.
+                    ax[cIdx].fill_between(xx, yLo, yHi, alpha=0.2)
+                ax[cIdx].grid(True)
+                ax[cIdx].set_xticks([10,30,50])
+                lineHandlesVec.append(h[0])
+                
+                if(min(yLo)<yMinVal):
+                    yMinVal = min(yLo)
+                if(max(yHi)>yMaxVal):
+                    yMaxVal = max(yHi)
+            ax[cIdx].set_title(classifier)
+            if(cIdx==0):
+                ax[cIdx].set_ylabel(dataset.upper()+'\nClassification Accuracy')
+            if(cIdx==1):
+                ax[cIdx].set_xlabel('# Features')
+        # because of a wide variance for KTAU w/ the first feature for Dorothea, 
+        # we have to manually set yMin and yMax, otherwise plot is uninformative
+        if(dataset=='Dorothea'):
+            ax[cIdx].set_ylim(0.8,1.0)
+            
+        plt.figlegend( lineHandlesVec, estimatorsLegend, loc = 'center right' )
+        plt.savefig(outputFname, bbox_inches='tight')
