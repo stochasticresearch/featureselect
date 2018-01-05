@@ -2,6 +2,7 @@
 
 from sys import platform
 import os
+import pickle
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -21,7 +22,7 @@ from sklearn.neighbors import KNeighborsClassifier
 
 miEstimators = ['ktau','knn_1','knn_6','knn_20','vme', 'ap']
 
-numCV = 10
+NUM_CV = 10
 SEED = 123
 MAX_NUM_FEATURES = 50
 MAX_ITER = 1000
@@ -47,14 +48,11 @@ def readNips2003Data(dataset):
         
     return (X_train,y_train,X_valid,y_valid,miFeatureSelections)    
 
-def evaluateClassificationPerformance(classifierStr, dataset):
+def evaluateClassificationPerformance(classifierStr, dataset, enableCV=False):
     (X_train,y_train,X_valid,y_valid,miFeatureSelections) = readNips2003Data(dataset)
     
     y_train = np.squeeze(np.asarray(y_train))
     y_valid = np.squeeze(np.asarray(y_valid))
-    numCV_val = 1  # we don't do cross-validation here b/c the data is split between
-                   # train/test/validation already, so we just test on the validation
-                   # set directly w/out CV
 
     resultsMean = np.empty((len(miEstimators),MAX_NUM_FEATURES))
     resultsVar = np.empty((len(miEstimators),MAX_NUM_FEATURES))
@@ -75,17 +73,19 @@ def evaluateClassificationPerformance(classifierStr, dataset):
                 if(classifierStr=='SVC'):
                     classifier = svm.SVC(random_state=SEED,max_iter=MAX_ITER)
                 elif(classifierStr=='RandomForest'):
-                    classifier = RandomForestClassifier(random_state=SEED)
+                    classifier = RandomForestClassifier(random_state=SEED,n_jobs=-2)
                 elif(classifierStr=='KNN'):
                     classifier = KNeighborsClassifier()
                 elif(classifierStr=='AdaBoost'):
                     classifier = AdaBoostClassifier(random_state=SEED)
 
-                if(numCV_val>1):
+                if(enableCV):
+                    X = np.vstack((X_train,X_valid))
+                    y = np.append(y_train,y_valid)
                     X_in = X[:,colSelect]
                     # normalize
                     X_in = preprocessing.scale(X_in)
-                    scores = cross_val_score(classifier, X_in, y, cv=numCV, n_jobs=-2)
+                    scores = cross_val_score(classifier, X_in, y, cv=NUM_CV, n_jobs=-2)
                 else:
                     X_train_in = X_train[:,colSelect]
                     X_valid_in = X_valid[:,colSelect]
@@ -111,6 +111,14 @@ def evaluateClassificationPerformance(classifierStr, dataset):
 if __name__=='__main__':
     datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
     classifiersToTest = ['SVC','RandomForest','KNN']
+    enableCV = True
+
+    if(enableCV):
+        postPend = '_yesCV'
+    else:
+        postPend = '_noCV'
+
+    resultsDir = os.path.join(folder, 'classification_results')
 
     for datasetIdx in range(len(datasetsToTest)):
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)
@@ -119,7 +127,23 @@ if __name__=='__main__':
         datasetToTest = datasetsToTest[datasetIdx]
         jj = 1
         for classifierStr in classifiersToTest:
-            resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest)
+            fname = os.path.join(resultsDir,datasetToTest+'_'+classifierStr+postPend+'.pkl')
+            if os.path.exists(fname):
+                with open(fname,'rb') as f:
+                    dataDict = pickle.load(f)
+                resultsMean = dataDict['resultsMean']
+                resultsVar  = dataDict['resultsVar']
+            else:
+                # only run if the results don't already exist
+                resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest,enableCV)
+                
+            # store these results
+            dataDict = {}
+            dataDict['resultsMean'] = resultsMean
+            dataDict['resultsVar']  = resultsVar
+            with open(fname,'wb') as f:
+                pickle.dump(dataDict,f)
+
             ax = fig.add_subplot(1, 3, jj)
             for ii in range(resultsMean.shape[0]):
                 ax.plot(range(1,len(resultsMean[ii,:])+1),resultsMean[ii,:],label=miEstimators[ii])
