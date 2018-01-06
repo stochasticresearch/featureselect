@@ -20,7 +20,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-miEstimators = ['ktau','knn_1','knn_6','knn_20','vme', 'ap']
+miEstimators = ['taukl','knn_1','knn_6','knn_20','vme', 'ap']
 classifiersToTest = ['SVC','RandomForest','KNN']
 datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
 enableCV = True
@@ -142,10 +142,10 @@ if __name__=='__main__':
 
     # plot the stuff & store
     estimatorsLegend = map(lambda x:x.upper(),miEstimators)
-    estimatorsLegend[estimatorsLegend.index('KTAU')] = r'$\tau_{KL}$'
-    estimatorsLegend[estimatorsLegend.index('VME')] = 'vME'
-    estimatorsLegend[estimatorsLegend.index('KNN_1')] = r'$KNN_1$'
-    estimatorsLegend[estimatorsLegend.index('KNN_6')] = r'$KNN_6$'
+    estimatorsLegend[estimatorsLegend.index('TAUKL')]  = r'$\tau_{KL}$'
+    estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
+    estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
+    estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
     estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
     resultsDir = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge',
