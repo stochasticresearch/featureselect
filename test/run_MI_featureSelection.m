@@ -97,7 +97,6 @@ for dataset=datasets
 end
 
 %% Test the mRMR algorithm on various estimators of MI for different datasets
-
 clear;
 clc;
 dbstop if error;
@@ -159,6 +158,70 @@ for dIdx=1:length(datasets)
         end
     end
 end
+
+%% Get the mRMR algorithm's initial feature rankings for analysis
+clear;
+clc;
+dbstop if error;
+
+% setup the estimators of MI
+minScanIncr = 0.015625;
+knn_1 = 1;
+knn_6 = 6;
+knn_20 = 20;
+
+functionHandlesCell = {@taukl_cc_mi_mex_interface;
+                       @tau_mi_interface;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @vmeMI_interface;
+                       @apMI_interface;};
+
+functionArgsCell    = {{0,1,0};
+                       {};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};};
+fNames = {'taukl','tau','knn_1','knn_6','knn_20','vme','ap'};
+
+datasets = {'dexter','dorothea','arcene','gisette','madelon'};
+
+dispstat('','init'); % One time only initialization
+dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
+
+for dIdx=1:length(datasets)
+    dataset = datasets{dIdx};
+    if(ispc)
+        folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
+    elseif(ismac)
+        folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    else
+        folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    end
+    dispstat(sprintf('Processing %s',dataset),'keepthis', 'timestamp');
+
+    load(fullfile(folder,dataset,'data.mat'));
+    X = double(X_train);
+    y = double(y_train);
+
+    for ii=1:length(fNames)
+        fs_outputFname = strcat(dataset,'_ifs_',fNames{ii},'.mat');
+        fOut = fullfile(folder,dataset,fs_outputFname);
+        dispstat(sprintf('\t> Processing %s',fNames{ii}),'keepthis', 'timestamp');
+        % if file exists, don't re-do it!
+        if(~exist(fOut,'file'))
+            tic;
+            dd = mrmr_init_feature_ranking(X, y, functionHandlesCell{ii}, functionArgsCell{ii});
+            elapsedTime = toc;
+            save(fOut,'dd','elapsedTime');
+        end
+    end
+end
+
+
 %% some tests to make sure that the serial and parallel versions of the
 
 % % algorithm produce the same results
