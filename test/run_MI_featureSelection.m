@@ -185,8 +185,8 @@ functionArgsCell    = {{0,1,0};
                        {knn_20};
                        {};
                        {};};
-fNames = {'taukl','tau','knn_1','knn_6','knn_20','vme','ap'};
 
+fNames = {'taukl','tau','knn_1','knn_6','knn_20','vme','ap'};
 datasets = {'dexter','dorothea','arcene','gisette','madelon'};
 
 dispstat('','init'); % One time only initialization
@@ -214,9 +214,9 @@ for dIdx=1:length(datasets)
         % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
             tic;
-            dd = mrmr_init_feature_ranking(X, y, functionHandlesCell{ii}, functionArgsCell{ii});
+            t = mrmr_init_feature_ranking(X, y, functionHandlesCell{ii}, functionArgsCell{ii});
             elapsedTime = toc;
-            save(fOut,'dd','elapsedTime');
+            save(fOut,'t','elapsedTime');
         end
     end
 end

@@ -1,4 +1,4 @@
-function [dd] = mrmr_init_feature_ranking(d, f, miFunctionHandle, miFunctionArgs, KMAX_in)
+function [t] = mrmr_init_feature_ranking(d, f, miFunctionHandle, miFunctionArgs, KMAX_in)
 
 nd = size(d,2);
 if(nargin<6)
@@ -12,6 +12,3 @@ t = zeros(1,nd);
 parfor i=1:nd
     t(i) = miFunctionHandle(d(:,i), f, miFunctionArgs{:});
 end
-
-[~, idxsOriginal] = sort(-t);
-dd = d(:,idxsOriginal(1:KMAX));  % hash the data down for efficiency
