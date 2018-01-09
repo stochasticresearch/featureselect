@@ -20,7 +20,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-miEstimators = ['taukl','knn_1','knn_6','knn_20','vme', 'ap']
+#miEstimators = ['taukl','knn_1','knn_6','knn_20','vme', 'ap']
+miEstimators = ['taukl','tau','knn_1','knn_6','knn_20','vme', 'ap']
 classifiersToTest = ['SVC','RandomForest','KNN']
 datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
 enableCV = True
@@ -116,7 +117,12 @@ if __name__=='__main__':
         postPend = '_yesCV'
     else:
         postPend = '_noCV'
-    resultsDir = os.path.join(folder, 'classification_results')
+    if('tau' in miEstimators):
+        subsubFolder = 'with_tau'
+    else:
+        subsubFolder = 'without_tau'
+
+    resultsDir = os.path.join(folder, 'classification_results', subsubFolder)
 
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
@@ -143,15 +149,17 @@ if __name__=='__main__':
     # plot the stuff & store
     estimatorsLegend = map(lambda x:x.upper(),miEstimators)
     estimatorsLegend[estimatorsLegend.index('TAUKL')]  = r'$\tau_{KL}$'
+    if('tau' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('TAU')]  = r'$\tau$'
     estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
     estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
     estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
     estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
     resultsDir = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge',
-                          'classification_results')
+                          'classification_results',subsubFolder)
     for dataset in datasetsToTest:
-        outputFname = os.path.join(resultsDir,'..','figures','realworld_data_sims',dataset+'.png')
+        outputFname = os.path.join(resultsDir,'..','..','figures','realworld_data_sims',dataset+'.png')
         
         fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,4))
 
