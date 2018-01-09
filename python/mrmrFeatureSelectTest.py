@@ -161,7 +161,7 @@ if __name__=='__main__':
     for dataset in datasetsToTest:
         outputFname = os.path.join(resultsDir,'..','..','figures','realworld_data_sims',dataset+'.png')
         
-        fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,4))
+        fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,3))
 
         yMinVal = 1.0
         yMaxVal = 0.0

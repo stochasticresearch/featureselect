@@ -179,6 +179,7 @@ knn_20 = 20;
 
 functionHandlesCell = {@taukl_cc_mex_interface;
                        @corr;
+                       @cim_v2_hybrid;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
@@ -187,13 +188,14 @@ functionHandlesCell = {@taukl_cc_mex_interface;
 
 functionArgsCell    = {{0,1,0};
                        {'type','kendall'};
+                       {};
                        {knn_1};
                        {knn_6};
                        {knn_20};
                        {};
                        {};};
 
-fNames = {'taukl','tau','knn_1','knn_6','knn_20','vme','ap'};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 datasets = {'dexter','dorothea','gisette','arcene','madelon'};
 
 dispstat('','init'); % One time only initialization

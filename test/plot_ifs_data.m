@@ -17,12 +17,17 @@ fNames = {'taukl','tau'};
 datasets = {'dexter','gisette','arcene','madelon'};
 % datasets = {'dexter','arcene','madelon'};
 
-width = 30; height = width/5;
-figure('paperpositionmode', 'auto', 'units', 'centimeters', 'position', [0 0 width height])
+plotStyle = {'o-.', '+-.', 'd-.', 'v-.', 's-.', 'p-.'};
+
+width = 15; height = 15;
+% figure('paperpositionmode', 'auto', 'units', 'centimeters', 'position', [0 0 width height])
+figure;
+
+zscor_xnan = @(x) bsxfun(@rdivide, bsxfun(@minus, x, mean(x,'omitnan')), std(x, 'omitnan'));
 
 for dIdx=1:length(datasets)
     dataset = datasets{dIdx};
-    subplot(1,4,dIdx);
+    subplot(2,2,dIdx);
     legendCell = cell(1,length(fNames));
     for fIdx=1:length(fNames)    
         fname = fNames{fIdx};
@@ -31,8 +36,7 @@ for dIdx=1:length(datasets)
         fPath = fullfile(folder,dataset,dataFname);
         try
             load(fPath);
-
-    %         [f,xi] = ksdensity(zscore(t));
+%             [f,xi] = ksdensity(zscor_xnan(t));
             [f,xi] = ksdensity(t);
             plot(xi,f);
             hold on;
@@ -43,7 +47,8 @@ for dIdx=1:length(datasets)
     %             fname='knn_{20}';
     %         end
             legendCell{fIdx} = fname;
-        catch
+        catch ME
+            ME
         end
     end
     grid on;
@@ -52,4 +57,4 @@ for dIdx=1:length(datasets)
     end
     title(dataset);
 end
-tightfig;
+% tightfig;
