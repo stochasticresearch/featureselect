@@ -164,6 +164,14 @@ clear;
 clc;
 dbstop if error;
 
+if(ispc)
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
+elseif(ismac)
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+else
+    folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+end
+
 % setup the estimators of MI
 knn_1 = 1;
 knn_6 = 6;
@@ -193,13 +201,7 @@ dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
 
 for dIdx=1:length(datasets)
     dataset = datasets{dIdx};
-    if(ispc)
-        folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
-    elseif(ismac)
-        folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
-    else
-        folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
-    end
+    
     dispstat(sprintf('Processing %s',dataset),'keepthis', 'timestamp');
 
     load(fullfile(folder,dataset,'data.mat'));
