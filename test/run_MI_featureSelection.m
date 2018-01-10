@@ -126,7 +126,7 @@ functionArgsCell    = {{0,1,0};
                        {};};
 fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 
-datasets = {'dexter','dorothea','arcene','gisette','madelon'};
+datasets = {'dexter','dorothea','gisette','arcene','madelon'};
 
 dispstat('','init'); % One time only initialization
 dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
