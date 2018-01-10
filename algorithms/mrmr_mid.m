@@ -1,4 +1,4 @@
-function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs, KMAX_in)
+function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs, KMAX_in,tIn)
 % The MID scheme of minimum redundancy maximal relevance (mRMR) feature selection
 % 
 % The parameters:
@@ -59,9 +59,13 @@ else
     KMAX = min(KMAX_in,nd);
 end
 
-t = zeros(1,nd);
-parfor i=1:nd
-    t(i) = miFunctionHandle(d(:,i), f, miFunctionArgs{:});
+if(nargin==7)
+    t = tIn;
+else
+    t = zeros(1,nd);
+    parfor i=1:nd
+        t(i) = miFunctionHandle(d(:,i), f, miFunctionArgs{:});
+    end
 end
 
 [~, idxsOriginal] = sort(-t);
