@@ -127,7 +127,6 @@ functionArgsCell    = {{0,1,0};
 fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 
 datasets = {'dexter','dorothea','arcene','gisette','madelon'};
-% datasets = {'arcene','madelon','dexter'};
 
 dispstat('','init'); % One time only initialization
 dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
@@ -151,23 +150,10 @@ for dIdx=1:length(datasets)
     for ii=1:length(fNames)
         fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
         fOut = fullfile(folder,dataset,fs_outputFname);
-        
-        ifs_Fname = strcat(dataset,'_ifs_',fNames{ii},'.mat');
-        ifsFOut = fullfile(folder,dataset,ifs_Fname);
-        if(exist(ifsFOut,'file'))
-            tLoaded = 1;
-            load(ifsFOut);
-        end
-        dispstat(sprintf('\t> Processing %s',fNames{ii}),'keepthis', 'timestamp');
         % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
             tic;
-            if(tLoaded)
-                KMAX = 1000;
-                featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii},KMAX,t);
-            else
-                featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii},KMAX);
-            end
+            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii},KMAX);
             elapsedTime = toc;
             save(fOut,'featureVec','elapsedTime');
         end
