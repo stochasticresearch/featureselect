@@ -211,7 +211,7 @@ for dIdx=1:length(datasets)
     y = double(y_train);
 
     for ii=1:length(fNames)
-        fs_outputFname = strcat(dataset,'_ifs_',fNames{ii},'.mat');
+        fs_outputFname = strcat(dataset,'_ifs_',fNames{ii},'.cimfix_v1.mat');
         fOut = fullfile(folder,dataset,fs_outputFname);
         dispstat(sprintf('\t> Processing %s',fNames{ii}),'keepthis', 'timestamp');
         % if file exists, don't re-do it!

@@ -20,8 +20,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
+#miEstimators = ['taukl','tau','cim','knn_1','knn_6','knn_20','vme', 'ap']
+#miEstimators = ['taukl','tau','knn_1','knn_6','knn_20','vme', 'ap']
+miEstimators = ['taukl','cim','knn_1','knn_6','knn_20','vme', 'ap']
 #miEstimators = ['taukl','knn_1','knn_6','knn_20','vme', 'ap']
-miEstimators = ['taukl','tau','knn_1','knn_6','knn_20','vme', 'ap']
+
 classifiersToTest = ['SVC','RandomForest','KNN']
 datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
 enableCV = True
@@ -117,10 +120,14 @@ if __name__=='__main__':
         postPend = '_yesCV'
     else:
         postPend = '_noCV'
-    if('tau' in miEstimators):
+    if('tau' in miEstimators and 'cim' not in miEstimators):
         subsubFolder = 'with_tau'
-    else:
+    elif('tau' not in miEstimators and 'cim' not in miEstimators):
         subsubFolder = 'without_tau'
+    elif('tau' not in miEstimators and 'cim' in miEstimators):
+        subsubFolder = 'with_cim'
+    elif('tau' in miEstimators and 'cim' in miEstimators):
+        subsubFolder = 'with_tau_and_cim'
 
     resultsDir = os.path.join(folder, 'classification_results', subsubFolder)
 
