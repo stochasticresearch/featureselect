@@ -148,12 +148,14 @@ for dIdx=1:length(datasets)
 
     numFeaturesToSelect = 50;
     for ii=1:length(fNames)
+        dispstat(sprintf('\t> Processing %s',fNames{ii}),'keepthis', 'timestamp');
+
         fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
         fOut = fullfile(folder,dataset,fs_outputFname);
         % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
             tic;
-            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii},KMAX);
+            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
             elapsedTime = toc;
             save(fOut,'featureVec','elapsedTime');
         end
