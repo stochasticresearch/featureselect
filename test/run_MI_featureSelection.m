@@ -114,7 +114,8 @@ functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @vmeMI_interface;
-                       @apMI_interface;};
+                       @apMI_interface;
+                       @cim_v2_hybrid_mi;};
 
 functionArgsCell    = {{0,1,0};
                        {};
@@ -123,10 +124,11 @@ functionArgsCell    = {{0,1,0};
                        {knn_6};
                        {knn_20};
                        {};
+                       {};
                        {};};
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','cim_mi'};
 
-datasets = {'dexter','dorothea','gisette','arcene','madelon'};
+datasets = {'dexter','dorothea','arcene','madelon','gisette'};
 
 dispstat('','init'); % One time only initialization
 dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');

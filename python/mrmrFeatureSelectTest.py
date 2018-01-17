@@ -152,7 +152,10 @@ if __name__=='__main__':
 
     # plot the stuff & store
     estimatorsLegend = map(lambda x:x.upper(),miEstimators)
-    estimatorsLegend[estimatorsLegend.index('TAUKL')]  = r'$\tau_{KL}$'
+    try:
+        estimatorsLegend[estimatorsLegend.index('TAUKL')]  = r'$\tau_{KL}$'
+    except:
+        pass
     if('tau' in miEstimators):
         estimatorsLegend[estimatorsLegend.index('TAU')]  = r'$\tau$'
     estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
