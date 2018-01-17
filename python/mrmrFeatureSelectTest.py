@@ -117,16 +117,8 @@ if __name__=='__main__':
         postPend = '_yesCV'
     else:
         postPend = '_noCV'
-    if('tau' in miEstimators and 'cim' not in miEstimators):
-        subsubFolder = 'with_tau'
-    elif('tau' not in miEstimators and 'cim' not in miEstimators):
-        subsubFolder = 'without_tau'
-    elif('tau' not in miEstimators and 'cim' in miEstimators):
-        subsubFolder = 'with_cim'
-    elif('tau' in miEstimators and 'cim' in miEstimators):
-        subsubFolder = 'with_tau_and_cim'
-
-    resultsDir = os.path.join(folder, 'classification_results', subsubFolder)
+    
+    resultsDir = os.path.join(folder, 'classification_results')
 
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
@@ -164,9 +156,9 @@ if __name__=='__main__':
     estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
     resultsDir = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge',
-                          'classification_results',subsubFolder)
+                          'classification_results')
     for dataset in datasetsToTest:
-        outputFname = os.path.join(resultsDir,'..','..','figures','realworld_data_sims',dataset+'.png')
+        outputFname = os.path.join(resultsDir,'..','figures','realworld_data_sims',dataset+'.png')
         
         fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,3))
 
