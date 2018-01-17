@@ -75,7 +75,7 @@ fea(1) = 1;
 idxleft = 2:KMAX;
 
 mi_array = nan(KMAX,K);
-for k=2:K
+for k=2:min(K,nd)
     ncand = length(idxleft);
     curlastfea = length(fea);
    

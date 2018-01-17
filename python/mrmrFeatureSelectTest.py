@@ -20,13 +20,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-#miEstimators = ['taukl','tau','cim','knn_1','knn_6','knn_20','vme', 'ap']
-#miEstimators = ['taukl','tau','knn_1','knn_6','knn_20','vme', 'ap']
-miEstimators = ['taukl','cim','knn_1','knn_6','knn_20','vme', 'ap']
-#miEstimators = ['taukl','knn_1','knn_6','knn_20','vme', 'ap']
+miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-datasetsToTest = ['Arcene','Dexter','Dorothea','Gisette','Madelon']
+datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon']
 enableCV = True
     
 NUM_CV = 10

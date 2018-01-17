@@ -4,7 +4,7 @@ clc;
 dbstop if error;
 
 if(ispc)
-    folder = 'C:\\Users\\Kiran\\Desktop\\new_datasets';
+    folder = 'C:\\Users\\Kiran\\Desktop\\libsvm_datasets';
 elseif(ismac)
     folder = '/Users/Kiran/ownCloud/PhD/sim_results/libsvm_datasets';
 else
@@ -24,7 +24,7 @@ for dIdx=1:length(datasets)
     dataset = datasets{dIdx};
     [y,X] = libsvmread(fullfile(folder,dataset));
     X = full(X);
-
+    dispstat(sprintf('%s',dataset),'keepthis','timestamp');
     for ii=1:length(fNames)
         fs_outputFname = strcat(dataset,'_ifs_',fNames{ii},'.mat');
         fOut = fullfile(folder,fs_outputFname);
@@ -36,10 +36,55 @@ for dIdx=1:length(datasets)
             elapsedTime = toc;
             save(fOut,'t','elapsedTime');
         end
-        
-        dispstat(sprintf('\t> [FS] Processing %s',fNames{ii}),'keepthis', 'timestamp');
+    end
+end
+
+%% Perform teh actual feature selection
+clear;
+clc;
+dbstop if error;
+
+if(ispc)
+    folder = 'C:\\Users\\Kiran\\Desktop\\libsvm_datasets';
+elseif(ismac)
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/libsvm_datasets';
+else
+    folder = '/home/kiran/ownCloud/PhD/sim_results/libsvm_datasets';
+end
+
+functionHandlesCell = {@taukl_cc_mi_mex_interface;
+                       @tau_mi_interface;
+                       @cim_v2_hybrid;
+                       {};
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @vmeMI_interface;
+                       @apMI_interface;};
+
+functionArgsCell    = {{0,1,0};
+                       {};
+                       {};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
+
+datasets = {'mushrooms','phishing'};
+numFeaturesToSelect = 50;
+
+for dIdx=1:length(datasets)
+    dataset = datasets{dIdx};
+    [y,X] = libsvmread(fullfile(folder,dataset));
+    X = full(X);
+    dispstat(sprintf('%s',dataset),'keepthis','timestamp');
+    for ii=1:length(fNames)
         fs_outputFname = strcat(dataset,'_fs_',fNames{ii},'.mat');
         fOut = fullfile(folder,fs_outputFname);
+        dispstat(sprintf('\t> [FS] Processing %s',fNames{ii}),'keepthis', 'timestamp');
+        % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
             tic;
             featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
@@ -48,6 +93,8 @@ for dIdx=1:length(datasets)
         end
     end
 end
+
+
 
 %% Explore the IFS files for Mushroom
 clear;

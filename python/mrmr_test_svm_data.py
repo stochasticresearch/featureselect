@@ -20,10 +20,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-miEstimators = ['taukl','tau']
+miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-datasetsToTest = ['mushrooms','phishing']
+datasetsToTest = ['mushrooms','phishing','crx','drivface']
     
 NUM_CV = 10
 SEED = 123
@@ -34,7 +34,7 @@ folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','libsvm_
 
 def readDataset(dataset):
     ds_lower = dataset.lower()
-    z = sio.loadmat(os.path.join(folder,ds_lower,'data.mat'))
+    z = sio.loadmat(os.path.join(folder,ds_lower+'_data.mat'))
     
     X = z['X']
     y = z['y']
@@ -79,8 +79,6 @@ def evaluateClassificationPerformance(classifierStr, dataset):
                 elif(classifierStr=='AdaBoost'):
                     classifier = AdaBoostClassifier(random_state=SEED)
 
-                X = np.vstack((X_train,X_valid))
-                y = np.append(y_train,y_valid)
                 X_in = X[:,colSelect]
                 # normalize
                 X_in = preprocessing.scale(X_in)
@@ -111,7 +109,7 @@ if __name__=='__main__':
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
         datasetToTest = datasetsToTest[datasetIdx]
         for classifierStr in classifiersToTest:
-            fname = os.path.join(resultsDir,datasetToTest+'_'+classifierStr+postPend+'.pkl')
+            fname = os.path.join(resultsDir,datasetToTest+'_'+classifierStr+'.pkl')
             if os.path.exists(fname):
                 with open(fname,'rb') as f:
                     dataDict = pickle.load(f)
@@ -119,7 +117,7 @@ if __name__=='__main__':
                 resultsVar  = dataDict['resultsVar']
             else:
                 # only run if the results don't already exist
-                resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest,enableCV)
+                resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest)
                 
             # store these results
             dataDict = {}
@@ -133,15 +131,13 @@ if __name__=='__main__':
     estimatorsLegend[estimatorsLegend.index('TAUKL')]  = r'$\tau_{KL}$'
     if('tau' in miEstimators):
         estimatorsLegend[estimatorsLegend.index('TAU')]  = r'$\tau$'
-    estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
-    estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
-    estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
-    estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
-
-    resultsDir = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge',
-                          'classification_results',subsubFolder)
+    
     for dataset in datasetsToTest:
-        outputFname = os.path.join(resultsDir,'..','..','figures','realworld_data_sims',dataset+'.png')
+        try:
+            os.makedirs(os.path.join(resultsDir,'figures'))
+        except:
+            pass
+        outputFname = os.path.join(resultsDir,'figures',dataset+'.png')
         
         fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,3))
 
@@ -149,7 +145,7 @@ if __name__=='__main__':
         yMaxVal = 0.0
         for cIdx in range(len(classifiersToTest)):
             classifier = classifiersToTest[cIdx]
-            f = os.path.join(resultsDir,dataset+'_'+classifier+postPend+'.pkl')
+            f = os.path.join(resultsDir,dataset+'_'+classifier+'.pkl')
             with open(f,'rb') as f:
                 z = pickle.load(f)
 
@@ -162,10 +158,10 @@ if __name__=='__main__':
 
                 y = resultsMean
                 h = ax[cIdx].plot(xx, y)
-                if(enableCV):
-                    yLo = resultsMean-results2Var/2.
-                    yHi = resultsMean+results2Var/2.
-                    ax[cIdx].fill_between(xx, yLo, yHi, alpha=0.2)
+                
+                yLo = resultsMean-results2Var/2.
+                yHi = resultsMean+results2Var/2.
+                ax[cIdx].fill_between(xx, yLo, yHi, alpha=0.2)
                 ax[cIdx].grid(True)
                 ax[cIdx].set_xticks([10,30,50])
                 lineHandlesVec.append(h[0])
@@ -179,10 +175,6 @@ if __name__=='__main__':
                 ax[cIdx].set_ylabel(dataset.upper()+'\nClassification Accuracy')
             if(cIdx==1):
                 ax[cIdx].set_xlabel('# Features')
-        # because of a wide variance for KTAU w/ the first feature for Dorothea, 
-        # we have to manually set yMin and yMax, otherwise plot is uninformative
-        if(dataset=='Dorothea'):
-            ax[cIdx].set_ylim(0.8,1.0)
             
         plt.figlegend( lineHandlesVec, estimatorsLegend, loc = 'center right' )
         plt.savefig(outputFname, bbox_inches='tight')
