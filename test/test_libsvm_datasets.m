@@ -52,6 +52,11 @@ else
     folder = '/home/kiran/ownCloud/PhD/sim_results/libsvm_datasets';
 end
 
+% setup the estimators of MI
+knn_1 = 1;
+knn_6 = 6;
+knn_20 = 20;
+
 functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @tau_mi_interface;
                        @cim_v2_hybrid;
@@ -60,7 +65,8 @@ functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @vmeMI_interface;
-                       @apMI_interface;};
+                       @apMI_interface;
+                       @cim_v2_hybrid_mi;};
 
 functionArgsCell    = {{0,1,0};
                        {};
@@ -69,8 +75,9 @@ functionArgsCell    = {{0,1,0};
                        {knn_6};
                        {knn_20};
                        {};
+                       {};
                        {};};
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','cim_mi'};
 
 datasets = {'mushrooms','phishing'};
 numFeaturesToSelect = 50;
