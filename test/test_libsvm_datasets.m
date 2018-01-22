@@ -60,7 +60,6 @@ knn_20 = 20;
 functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @tau_mi_interface;
                        @cim_v2_hybrid;
-                       {};
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
