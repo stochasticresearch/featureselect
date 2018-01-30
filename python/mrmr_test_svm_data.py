@@ -23,14 +23,16 @@ from sklearn.neighbors import KNeighborsClassifier
 miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-datasetsToTest = ['mushrooms','phishing','crx','drivface']
+#datasetsToTest = ['mushrooms','phishing','crx','drivface']
+datasetsToTest = ['drivface']
     
 NUM_CV = 10
 SEED = 123
 MAX_NUM_FEATURES = 50
 MAX_ITER = 1000
 
-folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','libsvm_datasets')
+#folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','libsvm_datasets')
+folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','drivface')
 
 def readDataset(dataset):
     ds_lower = dataset.lower()
