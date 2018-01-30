@@ -115,8 +115,7 @@ functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @vmeMI_interface;
-                       @apMI_interface;
-                       @cim_v2_hybrid_mi;};
+                       @apMI_interface;};
 
 functionArgsCell    = {{0,1,0};
                        {};
@@ -125,9 +124,8 @@ functionArgsCell    = {{0,1,0};
                        {knn_6};
                        {knn_20};
                        {};
-                       {};
                        {};};
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','cim_mi'};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 
 datasets = {'dexter','dorothea','arcene','madelon','gisette'};
 
