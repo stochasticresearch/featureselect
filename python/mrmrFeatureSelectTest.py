@@ -20,10 +20,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
+import pandas as pd
+
 miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms']
+datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','rf_fingerprinting']
 #datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
     
 NUM_CV = 10
@@ -40,9 +42,13 @@ def getDataFolder(dataset):
        dsl=='dorothea' or 
        dsl=='madelon'):
         folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge')
-    elif(dsl=='drivface'):
+    elif(dsl=='drivface' or
+         dsl=='mushrooms' or
+         dsl=='phishing'):
         folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','drivface')
-
+    elif(dsl=='rf_fingerprinting'):
+        folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results',
+            'rf_fingerprinting','data','fs_results')
     return folder
 
 def readDataset(dataset):
@@ -52,10 +58,41 @@ def readDataset(dataset):
        dsl=='dorothea' or 
        dsl=='madelon'):
         return _readNips2003Data(dataset)
-    else:
-        return _readRemainingDatasets(dataset)
+    elif(dsl=='drivface' or
+         dsl=='mushrooms' or
+         dsl=='phishing'):
+        return _readLibsvmDatasets(dataset)
+    elif(dsl=='rf_fingerprinting'):
+        return _readRfFingerprintingDatasets()
 
-def _readRemainingDatasets(dataset):
+def _readRfFingerprintingDatasets():
+    # static configuration ... do we need to parametrize?
+    numQ = 3
+    numSamplesForQ = 200
+
+    # read the data
+    fName = 'data_numQ_%d_numSampsForQ_%d.csv' % (numQ,numSamplesForQ)
+    df = pd.read_csv(os.path.join(getDataFolder('rf_fingerprinting'),'..',fName))
+
+    feature_cols = df.columns.tolist()
+    feature_cols.remove('transmitter_id')
+    X = df[feature_cols].values
+    y = df['transmitter_id'].values
+
+    # read  feature selection vectors
+    miFeatureSelections = {}
+    for miEstimator in miEstimators:
+        try:
+            matFile = 'data_numQ_%d_numSampsForQ_%d.csv_fs_%s.mat' % (numQ,numSamplesForQ,miEstimator)
+            matFileAndPath = os.path.join(getDataFolder('rf_fingerprinting'),matFile)
+            featureVec = sio.loadmat(matFileAndPath)
+            miFeatureSelections[miEstimator] = featureVec['featureVec']
+        except:
+            miFeatureSelections[miEstimator] = None
+
+    return (X,y,miFeatureSelections)
+
+def _readLibsvmDatasets(dataset):
     ds_lower = dataset.lower()
     z = sio.loadmat(os.path.join(folder,ds_lower+'_data.mat'))
     
@@ -70,7 +107,7 @@ def _readRemainingDatasets(dataset):
         except:
             miFeatureSelections[miEstimator] = None
         
-    return (X,y,miFeatureSelections)    
+    return (X,y,miFeatureSelections)
 
 def _readNips2003Data(dataset):
     ds_lower = dataset.lower()
@@ -97,8 +134,8 @@ def _readNips2003Data(dataset):
     return (X,y,miFeatureSelections)
 
 def evaluateClassificationPerformance(classifierStr, dataset):
-    (X,y,miFeatureSelections) = readNips2003Data(dataset)
-    
+    (X,y,miFeatureSelections) = readDataset(dataset)
+
     resultsMean = np.empty((len(miEstimators),MAX_NUM_FEATURES))
     resultsVar = np.empty((len(miEstimators),MAX_NUM_FEATURES))
     resultsMean.fill(np.nan)
@@ -146,6 +183,10 @@ if __name__=='__main__':
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
         datasetToTest = datasetsToTest[datasetIdx]
         resultsDir = os.path.join(getDataFolder(datasetToTest), 'classification_results')
+        try:
+            os.makedirs(resultsDir)
+        except:
+            pass
         for classifierStr in classifiersToTest:
             fname = os.path.join(resultsDir,datasetToTest+'_'+classifierStr+'.pkl')
             if os.path.exists(fname):
