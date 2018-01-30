@@ -18,7 +18,6 @@ functionArgsCell    = {{0,1,0};
 fNames = {'taukl','tau'};
 
 datasets = {'mushrooms','phishing'};
-numFeaturesToSelect = 50;
 
 for dIdx=1:length(datasets)
     dataset = datasets{dIdx};
@@ -56,10 +55,12 @@ end
 knn_1 = 1;
 knn_6 = 6;
 knn_20 = 20;
+msi = 0.015625; alpha = 0.2; 
+autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
 
 functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @tau_mi_interface;
-                       @cim_v2_hybrid;
+                       @cim;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
@@ -68,7 +69,7 @@ functionHandlesCell = {@taukl_cc_mi_mex_interface;
 
 functionArgsCell    = {{0,1,0};
                        {};
-                       {};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
                        {knn_1};
                        {knn_6};
                        {knn_20};
