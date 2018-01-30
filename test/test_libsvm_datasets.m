@@ -44,7 +44,7 @@ clc;
 dbstop if error;
 
 if(ispc)
-    folder = 'C:\\Users\\Kiran\\Desktop\\libsvm_datasets';
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\libsvm_datasets';
 elseif(ismac)
     folder = '/Users/Kiran/ownCloud/PhD/sim_results/libsvm_datasets';
 else
@@ -77,7 +77,7 @@ functionArgsCell    = {{0,1,0};
                        {};};
 fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 
-datasets = {'mushrooms','phishing'};
+datasets = fliplr({'mushrooms','phishing'});
 numFeaturesToSelect = 50;
 
 for dIdx=1:length(datasets)
