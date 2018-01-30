@@ -23,41 +23,82 @@ from sklearn.neighbors import KNeighborsClassifier
 miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon']
-enableCV = True
+datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms']
+#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
     
 NUM_CV = 10
 SEED = 123
 MAX_NUM_FEATURES = 50
 MAX_ITER = 1000
 
-folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge')
+figures_folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_selection_results_figures')
 
-def readNips2003Data(dataset):
+def getDataFolder(dataset):
+    dsl = dataset.lower()
+    if(dsl=='arcene' or 
+       dsl=='dexter' or 
+       dsl=='dorothea' or 
+       dsl=='madelon'):
+        folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge')
+    elif(dsl=='drivface'):
+        folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','drivface')
+
+    return folder
+
+def readDataset(dataset):
+    dsl = dataset.lower()
+    if(dsl=='arcene' or 
+       dsl=='dexter' or 
+       dsl=='dorothea' or 
+       dsl=='madelon'):
+        return _readNips2003Data(dataset)
+    else:
+        return _readRemainingDatasets(dataset)
+
+def _readRemainingDatasets(dataset):
     ds_lower = dataset.lower()
-    z = sio.loadmat(os.path.join(folder,ds_lower,'data.mat'))
+    z = sio.loadmat(os.path.join(folder,ds_lower+'_data.mat'))
+    
+    X = z['X']
+    y = z['y']
+
+    miFeatureSelections = {}
+    for miEstimator in miEstimators:
+        try:
+            featureVec = sio.loadmat(os.path.join(folder,ds_lower+'_fs_'+miEstimator+'.mat'))
+            miFeatureSelections[miEstimator] = featureVec['featureVec']
+        except:
+            miFeatureSelections[miEstimator] = None
+        
+    return (X,y,miFeatureSelections)    
+
+def _readNips2003Data(dataset):
+    ds_lower = dataset.lower()
+    z = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower,'data.mat'))
     
     X_train = z['X_train']
     y_train = z['y_train']
     X_valid = z['X_valid']
     y_valid = z['y_valid']
 
+    y_train = np.squeeze(np.asarray(y_train))
+    y_valid = np.squeeze(np.asarray(y_valid))
+    X = np.vstack((X_train,X_valid))
+    y = np.append(y_train,y_valid)
+    
     miFeatureSelections = {}
     for miEstimator in miEstimators:
         try:
-            featureVec = sio.loadmat(os.path.join(folder,ds_lower,ds_lower+'_fs_'+miEstimator+'.mat'))
+            featureVec = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower,ds_lower+'_fs_'+miEstimator+'.mat'))
             miFeatureSelections[miEstimator] = featureVec['featureVec']
         except:
             miFeatureSelections[miEstimator] = None
-        
-    return (X_train,y_train,X_valid,y_valid,miFeatureSelections)    
-
-def evaluateClassificationPerformance(classifierStr, dataset, enableCV=False):
-    (X_train,y_train,X_valid,y_valid,miFeatureSelections) = readNips2003Data(dataset)
     
-    y_train = np.squeeze(np.asarray(y_train))
-    y_valid = np.squeeze(np.asarray(y_valid))
+    return (X,y,miFeatureSelections)
 
+def evaluateClassificationPerformance(classifierStr, dataset):
+    (X,y,miFeatureSelections) = readNips2003Data(dataset)
+    
     resultsMean = np.empty((len(miEstimators),MAX_NUM_FEATURES))
     resultsVar = np.empty((len(miEstimators),MAX_NUM_FEATURES))
     resultsMean.fill(np.nan)
@@ -83,26 +124,13 @@ def evaluateClassificationPerformance(classifierStr, dataset, enableCV=False):
                 elif(classifierStr=='AdaBoost'):
                     classifier = AdaBoostClassifier(random_state=SEED)
 
-                if(enableCV):
-                    X = np.vstack((X_train,X_valid))
-                    y = np.append(y_train,y_valid)
-                    X_in = X[:,colSelect]
-                    # normalize
-                    X_in = preprocessing.scale(X_in)
-                    scores = cross_val_score(classifier, X_in, y, cv=NUM_CV, n_jobs=-2)
-                else:
-                    X_train_in = X_train[:,colSelect]
-                    X_valid_in = X_valid[:,colSelect]
-                    # normalize
-                    X_train_in = preprocessing.scale(X_train_in)
-                    X_valid_in = preprocessing.scale(X_valid_in)
-
-                    clf = classifier.fit(X_train_in,y_train)
-                    scores = np.asarray([clf.score(X_valid_in,y_valid)])
+                X_in = X[:,colSelect]
+                # normalize
+                X_in = preprocessing.scale(X_in)
+                scores = cross_val_score(classifier, X_in, y, cv=NUM_CV, n_jobs=-2)
 
                 mu = scores.mean()
                 sigma_sq = scores.std()*2
-                # print("numFeatures=%d Accuracy: %0.2f (+/- %0.2f)" % (ii, mu, sigma_sq))
                 
                 resultsMean[eIdx,ii-1] = mu
                 resultsVar[eIdx,ii-1] = sigma_sq
@@ -113,19 +141,13 @@ def evaluateClassificationPerformance(classifierStr, dataset, enableCV=False):
 
 
 if __name__=='__main__':
-    if(enableCV):
-        postPend = '_yesCV'
-    else:
-        postPend = '_noCV'
-    
-    resultsDir = os.path.join(folder, 'classification_results')
-
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
         datasetToTest = datasetsToTest[datasetIdx]
+        resultsDir = os.path.join(getDataFolder(datasetToTest), 'classification_results')
         for classifierStr in classifiersToTest:
-            fname = os.path.join(resultsDir,datasetToTest+'_'+classifierStr+postPend+'.pkl')
+            fname = os.path.join(resultsDir,datasetToTest+'_'+classifierStr+'.pkl')
             if os.path.exists(fname):
                 with open(fname,'rb') as f:
                     dataDict = pickle.load(f)
@@ -133,7 +155,7 @@ if __name__=='__main__':
                 resultsVar  = dataDict['resultsVar']
             else:
                 # only run if the results don't already exist
-                resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest,enableCV)
+                resultsMean, resultsVar = evaluateClassificationPerformance(classifierStr,datasetToTest)
                 
             # store these results
             dataDict = {}
@@ -155,10 +177,9 @@ if __name__=='__main__':
     estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
     estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
-    resultsDir = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge',
-                          'classification_results')
     for dataset in datasetsToTest:
-        outputFname = os.path.join(resultsDir,'..','figures','realworld_data_sims',dataset+'.png')
+        resultsDir = os.path.join(getDataFolder(dataset),'classification_results')
+        outputFname = os.path.join(figures_folder,dataset+'.png')
         
         fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,3))
 
@@ -166,7 +187,7 @@ if __name__=='__main__':
         yMaxVal = 0.0
         for cIdx in range(len(classifiersToTest)):
             classifier = classifiersToTest[cIdx]
-            f = os.path.join(resultsDir,dataset+'_'+classifier+postPend+'.pkl')
+            f = os.path.join(resultsDir,dataset+'_'+classifier+'.pkl')
             with open(f,'rb') as f:
                 z = pickle.load(f)
 
@@ -179,10 +200,10 @@ if __name__=='__main__':
 
                 y = resultsMean
                 h = ax[cIdx].plot(xx, y)
-                if(enableCV):
-                    yLo = resultsMean-results2Var/2.
-                    yHi = resultsMean+results2Var/2.
-                    ax[cIdx].fill_between(xx, yLo, yHi, alpha=0.2)
+
+                yLo = resultsMean-results2Var/2.
+                yHi = resultsMean+results2Var/2.
+                ax[cIdx].fill_between(xx, yLo, yHi, alpha=0.2)
                 ax[cIdx].grid(True)
                 ax[cIdx].set_xticks([10,30,50])
                 lineHandlesVec.append(h[0])
