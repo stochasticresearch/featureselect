@@ -25,7 +25,7 @@ import pandas as pd
 miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','rf_fingerprinting']
+datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','Gisette','drivface','rf_fingerprinting','mushrooms']
 #datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
     
 NUM_CV = 10
@@ -40,12 +40,14 @@ def getDataFolder(dataset):
     if(dsl=='arcene' or 
        dsl=='dexter' or 
        dsl=='dorothea' or 
-       dsl=='madelon'):
+       dsl=='madelon' or
+       dsl=='gisette'):
         folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge')
-    elif(dsl=='drivface' or
-         dsl=='mushrooms' or
+    elif(dsl=='drivface'):
+        folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results',dsl)
+    elif(dsl=='mushrooms' or
          dsl=='phishing'):
-        folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','drivface')
+        folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','libsvm_datasets')
     elif(dsl=='rf_fingerprinting'):
         folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results',
             'rf_fingerprinting','data','fs_results')
@@ -56,7 +58,8 @@ def readDataset(dataset):
     if(dsl=='arcene' or 
        dsl=='dexter' or 
        dsl=='dorothea' or 
-       dsl=='madelon'):
+       dsl=='madelon' or
+       dsl=='gisette'):
         return _readNips2003Data(dataset)
     elif(dsl=='drivface' or
          dsl=='mushrooms' or
@@ -94,7 +97,7 @@ def _readRfFingerprintingDatasets():
 
 def _readLibsvmDatasets(dataset):
     ds_lower = dataset.lower()
-    z = sio.loadmat(os.path.join(folder,ds_lower+'_data.mat'))
+    z = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower+'_data.mat'))
     
     X = z['X']
     y = z['y']
@@ -102,7 +105,7 @@ def _readLibsvmDatasets(dataset):
     miFeatureSelections = {}
     for miEstimator in miEstimators:
         try:
-            featureVec = sio.loadmat(os.path.join(folder,ds_lower+'_fs_'+miEstimator+'.mat'))
+            featureVec = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower+'_fs_'+miEstimator+'.mat'))
             miFeatureSelections[miEstimator] = featureVec['featureVec']
         except:
             miFeatureSelections[miEstimator] = None

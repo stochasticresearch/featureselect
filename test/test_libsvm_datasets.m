@@ -77,7 +77,7 @@ functionArgsCell    = {{0,1,0};
                        {};};
 fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 
-datasets = fliplr({'mushrooms','phishing'});
+datasets = {'mushrooms','phishing'};
 numFeaturesToSelect = 50;
 
 for dIdx=1:length(datasets)
