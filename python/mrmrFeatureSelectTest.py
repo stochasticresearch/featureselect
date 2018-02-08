@@ -25,9 +25,10 @@ import pandas as pd
 miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','Gisette','drivface','rf_fingerprinting','mushrooms']
-#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
-    
+#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','Gisette','drivface','rf_fingerprinting','mushrooms']
+datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
+#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon']
+
 NUM_CV = 10
 SEED = 123
 MAX_NUM_FEATURES = 50
@@ -101,6 +102,7 @@ def _readLibsvmDatasets(dataset):
     
     X = z['X']
     y = z['y']
+    y = y.flatten()
 
     miFeatureSelections = {}
     for miEstimator in miEstimators:
