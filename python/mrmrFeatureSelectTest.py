@@ -22,12 +22,13 @@ from sklearn.neighbors import KNeighborsClassifier
 
 import pandas as pd
 
-miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap']
+miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
 #datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','Gisette','drivface','rf_fingerprinting','mushrooms']
-datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
+#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
 #datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon']
+datasetsToTest = ['Arcene','Dexter','Gisette','Madelon']
 
 NUM_CV = 10
 SEED = 123
@@ -162,7 +163,7 @@ def evaluateClassificationPerformance(classifierStr, dataset):
                 elif(classifierStr=='RandomForest'):
                     classifier = RandomForestClassifier(random_state=SEED,n_jobs=-2)
                 elif(classifierStr=='KNN'):
-                    classifier = KNeighborsClassifier()
+                    classifier = KNeighborsClassifier(n_jobs=-2)
                 elif(classifierStr=='AdaBoost'):
                     classifier = AdaBoostClassifier(random_state=SEED)
 
@@ -267,6 +268,6 @@ if __name__=='__main__':
         # we have to manually set yMin and yMax, otherwise plot is uninformative
         if(dataset=='Dorothea'):
             ax[cIdx].set_ylim(0.8,1.0)
-            
+                
         plt.figlegend( lineHandlesVec, estimatorsLegend, loc = 'center right' )
         plt.savefig(outputFname, bbox_inches='tight')
