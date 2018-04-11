@@ -28,7 +28,13 @@ classifiersToTest = ['SVC','RandomForest','KNN']
 #datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','Gisette','drivface','rf_fingerprinting','mushrooms']
 #datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
 #datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon']
+
+# the datasets tha we include in the paper
 datasetsToTest = ['Arcene','Dexter','Gisette','Madelon']
+# datasetsToTest = ['arcene_0.1','dexter_0.1','gisette_0.1','madelon_0.1']
+# datasetsToTest = ['arcene_0.25','dexter_0.25','gisette_0.25','madelon_0.25']
+# datasetsToTest = ['arcene_0.5','dexter_0.5','gisette_0.5','madelon_0.5']
+# datasetsToTest = ['arcene_0.75','dexter_0.75','gisette_0.75','madelon_0.75']
 
 NUM_CV = 10
 SEED = 123
@@ -69,6 +75,11 @@ def readDataset(dataset):
         return _readLibsvmDatasets(dataset)
     elif(dsl=='rf_fingerprinting'):
         return _readRfFingerprintingDatasets()
+    elif('_' in dsl):
+        dsl_split = dsl.split('_')
+        dsl = dsl_split[0]
+        skew = dsl_split[1]
+        return _readNips2003Data_skewed(dataset,skew)
 
 def _readRfFingerprintingDatasets():
     # static configuration ... do we need to parametrize?
@@ -133,6 +144,30 @@ def _readNips2003Data(dataset):
     for miEstimator in miEstimators:
         try:
             featureVec = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower,ds_lower+'_fs_'+miEstimator+'.mat'))
+            miFeatureSelections[miEstimator] = featureVec['featureVec']
+        except:
+            miFeatureSelections[miEstimator] = None
+    
+    return (X,y,miFeatureSelections)
+
+def _readNips2003Data_skewed(dataset,skew=0.1):
+    ds_lower = dataset.lower()
+    z = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower,'data_skew_'+str(skew)+'.mat'))
+    
+    X_train = z['X_train']
+    y_train = z['y_train']
+    X_valid = z['X_valid']
+    y_valid = z['y_valid']
+
+    y_train = np.squeeze(np.asarray(y_train))
+    y_valid = np.squeeze(np.asarray(y_valid))
+    X = np.vstack((X_train,X_valid))
+    y = np.append(y_train,y_valid)
+    
+    miFeatureSelections = {}
+    for miEstimator in miEstimators:
+        try:
+            featureVec = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower,ds_lower+'_skew_'+str(skew)+'_fs_'+miEstimator+'.mat'))
             miFeatureSelections[miEstimator] = featureVec['featureVec']
         except:
             miFeatureSelections[miEstimator] = None

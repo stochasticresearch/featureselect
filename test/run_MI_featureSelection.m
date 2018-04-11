@@ -165,6 +165,121 @@ for dIdx=1:length(datasets)
     end
 end
 
+%% Skew the datasets to see the effect of skewing the data
+clear;
+clc;
+
+datasets = {'dexter','arcene','madelon','gisette'};
+seed = 12345;
+pos_class_percentage_of_neg = 0.75;  % determines how many samples we'll drop from the pos class when training
+
+for dIdx=1:length(datasets)
+    dataset = datasets{dIdx};
+    if(ispc)
+        folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
+    elseif(ismac)
+        folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    else
+        folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    end
+    dispstat(sprintf('Processing %s',dataset),'keepthis', 'timestamp');
+
+    load(fullfile(folder,dataset,'data.mat'));
+    X_train = double(X_train);
+    y_train = double(y_train);
+    
+    % delete samples from the positive class to ensure we have the
+    % percentages as specified above (only for training data!, not
+    % validation!)
+    I_neg_class = y_train==-1; I_pos_class = y_train==1;
+    y_neg_class = y_train(I_neg_class); y_pos_class = y_train(I_pos_class);
+    num_desired_y_pos_class = round(length(y_neg_class)*pos_class_percentage_of_neg);
+    rng(seed);
+    idxs_all = randperm(length(y_pos_class));
+    idxs_new_pos_class = idxs_all(1:num_desired_y_pos_class);
+    X_neg_class = X_train(I_neg_class,:);
+    X_pos_class = X_train(I_pos_class,:); 
+    X_pos_class_subsampled = X_pos_class(idxs_new_pos_class,:); 
+    y_pos_class_subsampled = y_pos_class(idxs_new_pos_class);
+    
+    X_train = [X_neg_class; X_pos_class_subsampled];
+    y_train = [y_neg_class; y_pos_class_subsampled];
+    
+    save(fullfile(folder,dataset,sprintf('data_skew_%0.02f.mat',pos_class_percentage_of_neg)),...
+        'X_train','y_train','X_valid','y_valid');
+end
+
+%% Test the mRMR algorithm on various estimators of MI for different datasets w/ deliberately skewed data!
+clear;
+clc;
+dbstop if error;
+
+% setup the estimators of MI
+knn_1 = 1;
+knn_6 = 6;
+knn_20 = 20;
+msi = 0.015625; alpha = 0.2; 
+autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+
+functionHandlesCell = {@taukl_cc_mi_mex_interface;
+                       @tau_mi_interface;
+                       @cim;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @vmeMI_interface;
+                       @apMI_interface;
+                       @h_mi_interface};
+
+functionArgsCell    = {{0,1,0};
+                       {};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};
+                       {1}};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
+
+datasets = {'dexter','arcene','madelon','gisette'};
+
+dispstat('','init'); % One time only initialization
+dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
+
+pos_class_percentage_of_neg = 0.1;  % determines how many samples we'll drop from the pos class when training
+
+for dIdx=1:length(datasets)
+    dataset = datasets{dIdx};
+    if(ispc)
+        folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
+    elseif(ismac)
+        folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    else
+        folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+    end
+    dispstat(sprintf('Processing %s',dataset),'keepthis', 'timestamp');
+
+    load(fullfile(folder,dataset,sprintf('data_skew_%0.02f.mat',pos_class_percentage_of_neg)));
+    X = double(X_train);
+    y = double(y_train);
+    
+    numFeaturesToSelect = 50;
+    for ii=1:length(fNames)
+        dispstat(sprintf('\t> Processing %s',fNames{ii}),'keepthis', 'timestamp');
+
+        fs_outputFname = strcat(dataset,'_skew_',sprintf('%0.02f',pos_class_percentage_of_neg),'_fs_',fNames{ii},'.mat');
+        fOut = fullfile(folder,dataset,fs_outputFname);
+        % if file exists, don't re-do it!
+        if(~exist(fOut,'file'))
+            tic;
+            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
+            elapsedTime = toc;
+            save(fOut,'featureVec','elapsedTime');
+        end
+    end
+end
+
 %% Get the mRMR algorithm's initial feature rankings for analysis
 clear;
 clc;
