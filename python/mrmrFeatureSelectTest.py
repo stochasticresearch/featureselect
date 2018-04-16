@@ -25,16 +25,13 @@ import pandas as pd
 miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
-#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','Gisette','drivface','rf_fingerprinting','mushrooms']
-#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon','drivface','mushrooms','phishing']
-#datasetsToTest = ['Arcene','Dexter','Dorothea','Madelon']
 
 # the datasets tha we include in the paper
-datasetsToTest = ['Arcene','Dexter','Gisette','Madelon']
-# datasetsToTest = ['arcene_0.1','dexter_0.1','gisette_0.1','madelon_0.1']
-# datasetsToTest = ['arcene_0.25','dexter_0.25','gisette_0.25','madelon_0.25']
-# datasetsToTest = ['arcene_0.5','dexter_0.5','gisette_0.5','madelon_0.5']
-# datasetsToTest = ['arcene_0.75','dexter_0.75','gisette_0.75','madelon_0.75']
+datasetsToTest = ['Arcene','Dexter','Madelon','Gisette',
+                  'arcene_0.10','dexter_0.10','madelon_0.10','gisette_0.10',
+                  'arcene_0.25','dexter_0.25','madelon_0.25','gisette_0.25',
+                  'arcene_0.50','dexter_0.50','madelon_0.50','gisette_0.50',
+                  'arcene_0.75','dexter_0.75','madelon_0.75','gisette_0.75']
 
 NUM_CV = 10
 SEED = 123
@@ -45,11 +42,11 @@ figures_folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results',
 
 def getDataFolder(dataset):
     dsl = dataset.lower()
-    if(dsl=='arcene' or 
-       dsl=='dexter' or 
-       dsl=='dorothea' or 
-       dsl=='madelon' or
-       dsl=='gisette'):
+    if('arcene' in dsl or 
+       'dexter' in dsl or 
+       'dorothea' in dsl or 
+       'madelon' in dsl or
+       'gisette' in dsl):
         folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results','feature_select_challenge')
     elif(dsl=='drivface'):
         folder = os.path.join(os.environ['HOME'],'ownCloud','PhD','sim_results',dsl)
@@ -79,7 +76,7 @@ def readDataset(dataset):
         dsl_split = dsl.split('_')
         dsl = dsl_split[0]
         skew = dsl_split[1]
-        return _readNips2003Data_skewed(dataset,skew)
+        return _readNips2003Data_skewed(dsl,skew)
 
 def _readRfFingerprintingDatasets():
     # static configuration ... do we need to parametrize?
