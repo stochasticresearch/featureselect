@@ -258,8 +258,8 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
     estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
     datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette']
-    skews = [0.25,0.50,'full']
-    for dataset in datasetsToTest:
+    skews = [0.5,0.75,'full']
+    for dataset in datasets_to_plot:
         resultsDir = os.path.join(getDataFolder(dataset),'classification_results')
         outputFname = os.path.join(figures_folder,'by_skew',dataset+'.png')
         
@@ -267,12 +267,12 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
 
         yMinVal = 1.0
         yMaxVal = 0.0
-        for cIdx in [range(len(skews))]:
+        for cIdx in range(len(skews)):
             skewVal = skews[cIdx]
             if(skewVal=='full'):
                 ds_str = dataset
             else:
-                ds_str = '%s_%0.02f' % (dataset.lower,skewVal)
+                ds_str = '%s_%0.02f' % (dataset.lower(),skewVal)
             f = os.path.join(resultsDir,ds_str+'_'+algorithm+'.pkl')
             with open(f,'rb') as f:
                 z = pickle.load(f)
@@ -298,7 +298,10 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
                     yMinVal = min(yLo)
                 if(max(yHi)>yMaxVal):
                     yMaxVal = max(yHi)
-            ax[cIdx].set_title(algorithm)
+            if(skewVal=='full'):
+                ax[cIdx].set_title('No Skew')
+            else:
+                ax[cIdx].set_title('Skew=%0.02f' % (skewVal))
             if(cIdx==0):
                 ax[cIdx].set_ylabel(dataset.upper()+'\nClassification Accuracy')
             if(cIdx==1):
@@ -402,4 +405,4 @@ def generate_alg_comparsion_plots():
         plt.savefig(outputFname, bbox_inches='tight')
 
 if __name__=='__main__':
-    generate_skew_comparison_plots()
+    generate_skew_comparison_plots(algorithm='KNN')
