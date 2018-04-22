@@ -214,8 +214,105 @@ def evaluateClassificationPerformance(classifierStr, dataset):
 
     return (resultsMean,resultsVar)
 
+def generate_skew_comparison_plots(algorithm='RandomForest'):
+    datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette',
+                      'arcene_0.25','dexter_0.25','madelon_0.25','gisette_0.25',
+                      'arcene_0.50','dexter_0.50','madelon_0.50','gisette_0.50']
+    # run the ML
+    for datasetIdx in range(len(datasetsToTest)):
+        print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
+        datasetToTest = datasetsToTest[datasetIdx]
+        resultsDir = os.path.join(getDataFolder(datasetToTest), 'classification_results')
+        try:
+            os.makedirs(resultsDir)
+        except:
+            pass
+        fname = os.path.join(resultsDir,datasetToTest+'_'+algorithm+'.pkl')
+        if os.path.exists(fname):
+            with open(fname,'rb') as f:
+                dataDict = pickle.load(f)
+            resultsMean = dataDict['resultsMean']
+            resultsVar  = dataDict['resultsVar']
+        else:
+            # only run if the results don't already exist
+            resultsMean, resultsVar = evaluateClassificationPerformance(algorithm,datasetToTest)
+            
+        # store these results
+        dataDict = {}
+        dataDict['resultsMean'] = resultsMean
+        dataDict['resultsVar']  = resultsVar
+        with open(fname,'wb') as f:
+            pickle.dump(dataDict,f)
 
-if __name__=='__main__':
+    # plot the stuff & store
+    estimatorsLegend = map(lambda x:x.upper(),miEstimators)
+    try:
+        estimatorsLegend[estimatorsLegend.index('TAUKL')]  = r'$\tau_{KL}$'
+    except:
+        pass
+    if('tau' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('TAU')]  = r'$\tau$'
+    estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
+    estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
+    estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
+    estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
+
+    datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette']
+    skews = [0.25,0.50,'full']
+    for dataset in datasetsToTest:
+        resultsDir = os.path.join(getDataFolder(dataset),'classification_results')
+        outputFname = os.path.join(figures_folder,'by_skew',dataset+'.png')
+        
+        fig,ax = plt.subplots(1,3,sharex=True,sharey=True,figsize=(9,3))
+
+        yMinVal = 1.0
+        yMaxVal = 0.0
+        for cIdx in [range(len(skews))]:
+            skewVal = skews[cIdx]
+            if(skewVal=='full'):
+                ds_str = dataset
+            else:
+                ds_str = '%s_%0.02f' % (dataset.lower,skewVal)
+            f = os.path.join(resultsDir,ds_str+'_'+algorithm+'.pkl')
+            with open(f,'rb') as f:
+                z = pickle.load(f)
+
+            lineHandlesVec = []
+            for estimatorIdx in range(z['resultsMean'].shape[0]):
+                resultsMean = z['resultsMean'][estimatorIdx,:]
+                results2Var = z['resultsVar'][estimatorIdx,:]
+                resultsStd = np.sqrt(results2Var/2.)
+                xx = range(1,len(resultsMean)+1)
+
+                y = resultsMean
+                h = ax[cIdx].plot(xx, y)
+
+                yLo = resultsMean-results2Var/2.
+                yHi = resultsMean+results2Var/2.
+                ax[cIdx].fill_between(xx, yLo, yHi, alpha=0.2)
+                ax[cIdx].grid(True)
+                ax[cIdx].set_xticks([10,30,50])
+                lineHandlesVec.append(h[0])
+                
+                if(min(yLo)<yMinVal):
+                    yMinVal = min(yLo)
+                if(max(yHi)>yMaxVal):
+                    yMaxVal = max(yHi)
+            ax[cIdx].set_title(algorithm)
+            if(cIdx==0):
+                ax[cIdx].set_ylabel(dataset.upper()+'\nClassification Accuracy')
+            if(cIdx==1):
+                ax[cIdx].set_xlabel('# Features')
+        # because of a wide variance for KTAU w/ the first feature for Dorothea, 
+        # we have to manually set yMin and yMax, otherwise plot is uninformative
+        if(dataset=='Dorothea'):
+            ax[cIdx].set_ylim(0.8,1.0)
+                
+        plt.figlegend( lineHandlesVec, estimatorsLegend, loc = 'center right' )
+        plt.savefig(outputFname, bbox_inches='tight')
+
+
+def generate_alg_comparsion_plots():
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
@@ -303,3 +400,6 @@ if __name__=='__main__':
                 
         plt.figlegend( lineHandlesVec, estimatorsLegend, loc = 'center right' )
         plt.savefig(outputFname, bbox_inches='tight')
+
+if __name__=='__main__':
+    generate_skew_comparison_plots()
