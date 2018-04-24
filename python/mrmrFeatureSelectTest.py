@@ -277,6 +277,20 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
             with open(f,'rb') as f:
                 z = pickle.load(f)
 
+            # load the data for the inset plot also!
+            if(skewVal=='full'):
+                ds_lower = dataset.lower()
+                z_data = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower,'data.mat'))
+            else:
+                ds_lower = dataset.lower()
+                z_data = sio.loadmat(os.path.join(getDataFolder(dataset),ds_lower,'data_skew_'+'%0.02f'%(skewVal)+'.mat'))
+            y_train = z_data['y_train']
+            y_train = np.squeeze(np.asarray(y_train))
+            unique_elements, counts_elements = np.unique(y_train, return_counts=True)
+            print(counts_elements)
+            num_neg_one = counts_elements[0]
+            num_pos_one = counts_elements[1]
+
             lineHandlesVec = []
             for estimatorIdx in range(z['resultsMean'].shape[0]):
                 resultsMean = z['resultsMean'][estimatorIdx,:]
@@ -306,6 +320,15 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
                 ax[cIdx].set_ylabel(dataset.upper()+'\nClassification Accuracy')
             if(cIdx==1):
                 ax[cIdx].set_xlabel('# Features')
+
+            # add an inset plot to show the data skew of output class labels via histogram
+            pos = ax[cIdx].get_position().bounds
+            a = plt.axes([pos[0],pos[1],0.05,0.15])
+            sns.barplot([-1,1],counts_elements,saturation=0.75)
+            #plt.xticks([])
+            a.xaxis.set_ticks_position('top')
+            plt.yticks([])
+
         # because of a wide variance for KTAU w/ the first feature for Dorothea, 
         # we have to manually set yMin and yMax, otherwise plot is uninformative
         if(dataset=='Dorothea'):
