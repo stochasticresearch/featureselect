@@ -99,15 +99,19 @@ def feature_select(X,y,num_features_to_select=None,K_MAX=1000,estimator=depmeas.
     selected_feature_idxs    = np.zeros(num_selected_features,dtype=int)
     remaining_candidate_idxs = range(1,K_MAX_internal)
     
-    mi_matrix = np.empty((K_MAX_internal,num_selected_features-1))
-    mi_matrix[:] = np.nan
+    # mi_matrix = np.empty((K_MAX_internal,num_selected_features-1))
+    # mi_matrix[:] = np.nan
 
     relevance_vec_fname = os.path.join(tmp_folder, 'relevance_vec')
     feature_redundance_vec_fname = os.path.join(tmp_folder, 'feature_redundance_vec')
+    mi_matrix_fname = os.path.join(tmp_folder, 'mi_matrix')
     relevance_vec = np.memmap(relevance_vec_fname, dtype=float, 
                                 shape=(K_MAX_internal,), mode='w+')
     feature_redundance_vec = np.memmap(feature_redundance_vec_fname, dtype=float, 
                                 shape=(K_MAX_internal,), mode='w+')
+    mi_matrix = np.memmap(mi_matrix_fname, dtype=float, 
+                                shape=(K_MAX_internal,num_selected_features-1), mode='w+')
+    mi_matrix[:] = np.nan
 
     # TODO: investigate whether its worth it to parallelize the nested for-loop?
     with tqdm(total=num_selected_features,desc='Selecting Features ...',disable=(not verbose)) as pbar:
