@@ -307,7 +307,8 @@ functionHandlesCell = {@taukl_cc_mex_interface;
                        @KraskovMI_cc_mex;
                        @KraskovMI_cc_mex;
                        @vmeMI_interface;
-                       @apMI_interface;};
+                       @apMI_interface;
+                       @h_mi_interface};
 
 functionArgsCell    = {{0,1,0};
                        {'type','kendall'};
@@ -316,10 +317,12 @@ functionArgsCell    = {{0,1,0};
                        {knn_6};
                        {knn_20};
                        {};
-                       {};};
+                       {};
+                       {1}};
 
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
-datasets = {'dexter','dorothea','gisette','arcene','madelon'};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
+% datasets = {'dexter','dorothea','gisette','arcene','madelon'};
+datasets = {'dexter','gisette','arcene','madelon'};
 
 dispstat('','init'); % One time only initialization
 dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
@@ -347,6 +350,104 @@ for dIdx=1:length(datasets)
     end
 end
 
+%% Analyze the feature selection results for selected dataset
+
+clear;
+clc;
+dbstop if error;
+
+msi = 0.015625; alpha = 0.2; 
+autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+
+if(ispc)
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\feature_select_challenge';
+elseif(ismac)
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+else
+    folder = '/home/kiran/ownCloud/PhD/sim_results/feature_select_challenge';
+end
+
+% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
+% fNames = {'cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
+% fNames = {'cim','h_mi','knn_1','knn_6','knn_20','ap'};
+fNames = {'cim','h_mi'};
+datasets = {'dexter','gisette','arcene','madelon'};
+skew_levels = {'0.50','0.75','no-skew'};
+
+% produce histogram of the associations of all the features against the
+% output matrix, before feature selection for each estimator we care about
+nbins = 50;
+
+% compute the overlap of the selected features for each skew-level
+num_features_to_compute_ovlp = 50;
+for dIdx=1:length(datasets)
+    dataset = datasets{dIdx};
+    
+    load(fullfile(folder,dataset,'data.mat'));
+    X = double(X_train);
+    y = double(y_train);
+    
+    figure;
+    for ii=1:length(fNames)
+        estimator_name = fNames{ii};
+        
+        % get the IFS vector which contains the strengths of associations
+        % of all features against the output
+        fs_outputFname = strcat(dataset,'_ifs_',estimator_name,'.mat');
+        fIn = fullfile(folder,dataset,fs_outputFname);
+        clear t
+        load(fIn);
+        subplot(2,4,(ii-1)*4+1);
+        histogram(t,nbins,'normalization','probability');
+        title(strcat(estimator_name,'-ifs'));
+        
+        estimator_selected_features = zeros(3,num_features_to_compute_ovlp);  % 3 skews, 50 max features selected
+        for jj=1:length(skew_levels)
+            skl = skew_levels{jj};
+            if(strcmp(skl,'no-skew'))
+                fs_Fname = strcat(dataset,'_fs_',estimator_name,'.mat');
+            else
+                fs_Fname = strcat(dataset,'_skew_',skl,'_fs_',estimator_name,'.mat');
+            end
+            fIn = fullfile(folder,dataset,fs_Fname);
+            % remove previous result for safety
+            clear featureVec
+            if(exist(fIn,'file'))
+                load(fIn);
+                estimator_selected_features(jj,:) = featureVec(1:num_features_to_compute_ovlp);
+            end
+            subplot(2,4,(ii-1)*4+(jj+1));
+            featureVec_strength_of_association = t(featureVec);
+            histogram(featureVec_strength_of_association,nbins);
+            title(strcat(fNames{ii},'-',skl));
+        end
+        
+        % for the selected features, compute the monotonicity using CIM
+        feat_sel_vec = estimator_selected_features(3,:);
+        num_regions_arr = zeros(1,size(feat_sel_vec,2));
+        for kk=1:size(feat_sel_vec,2)
+            xxx = X(:,feat_sel_vec(kk));
+            [~,regions] = cim(xxx,y,msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator);
+            num_regions = size(regions,2);
+            num_regions_arr(kk) = num_regions;
+        end
+        
+        % compute the % of features which remained the same and output that
+        % information
+        ovlp_noskew_and_fifty = length(intersect(estimator_selected_features(3,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
+        ovlp_noskew_and_seventyfive = length(intersect(estimator_selected_features(3,:),estimator_selected_features(2,:)))*100/num_features_to_compute_ovlp;
+        ovlp_fifty_and_seventyfive = length(intersect(estimator_selected_features(2,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
+%         fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f, 0.5/0.75=%0.02f\n',...
+%             dataset,estimator_name,ovlp_noskew_and_fifty,...
+%             ovlp_noskew_and_seventyfive,ovlp_fifty_and_seventyfive);
+        fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f mean(#regions)=%0.02f \n',...
+            dataset,estimator_name,ovlp_noskew_and_fifty,...
+            ovlp_noskew_and_seventyfive,mean(num_regions_arr));
+        
+    end
+    suptitle(dataset);
+    fprintf('\n');
+end
 
 %% some tests to make sure that the serial and parallel versions of the
 
