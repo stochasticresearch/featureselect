@@ -34,7 +34,7 @@ numRedundantFeatures = 10;
 numUselessFeatures = 36;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
-numSamps = 100;
+numSamps = 250;
 
 % create redundant feature possibilities
 fpCell = {}; fpCellIdx = 1;
@@ -62,11 +62,11 @@ randomFeaturesCell{9} = makedist('Uniform');
 randomFeaturesCell{10} = makedist('Weibull');
 
 % setup monte-carlo simulation configuration
-numMCSims = 10;
+numMCSims = 50;
 
 % setup output filename
 outputFname = sprintf('res_%d_%d_%d_%d_%d.mat',...
-    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims)
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
 
 % setup estimators and feature selection framework
 knn_1 = 1;
@@ -99,24 +99,23 @@ fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
 numFeaturesToSelect = min(50,numUselessFeatures+numRedundantFeatures+numIndependentFeatures);  % maximum # of features to select
 
 % setup data structure to hold results
-resultsMap = containers.Map;
-for mk=skews
-    zz = containers.Map;
-    for sk=dep_clusters
-        zzz = containers.Map;
-        for f=fNames
-            zzz(f) = nan(numMCSims,numFeaturesToSelect);
+resultsMap = MapNested();
+for mkIdx=1:length(skews)
+    sk = skews{mkIdx};
+    for dcIdx=1:length(dep_clusters)
+        dc = dep_clusters{dcIdx};
+        for fIdx=1:length(fNames)
+            f = fNames{fIdx};
+            resultsMap(sk,dc,f) = nan(numMCSims,numFeaturesToSelect);
         end
-        zz(sk) = zzz;
     end
-    resultsMap(mk) = zz;
 end
 
-ispstat('','init'); % One time only initialization
+dispstat('','init'); % One time only initialization
 dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
 
 fpCellIdx = 1; operatorIdx = 1; randomFeatureIdx = 1;
-ovpIdx = ovpIdx + 1;
+ovpIdx = 1;
 for skIdx=1:length(skews)
     sk = skews{skIdx};
     if(strcmp(sk,'no_skew'))
@@ -175,7 +174,7 @@ for skIdx=1:length(skews)
                 % combine & store in XX vector
                 res = X(:,operands(1));
                 for kk=2:length(operands)
-                    res = op(res,XX(:,operands(kk)));
+                    res = op(res,X(:,operands(kk)));
                 end
                 X(:,curCol) = res;
                 curCol = curCol + 1;
@@ -191,18 +190,20 @@ for skIdx=1:length(skews)
 
             % run feature-selection for each algorithm
             for fIdx=1:length(fNames)
-                ovp = ovpIdx/(length(skews)*length(dep_clusters)*length(numUselessFeatures));
+                ovp = ovpIdx/(length(skews)*length(dep_clusters)*numMCSims*length(fNames));
                 dispstat(sprintf('%s--%s OverallProgress=%0.02f',sk, dc, ovp*100));
 
                 % load the results-map from file if it already exists
                 if(exist(fullfile(folder,outputFname),'file'))
                     load(fullfile(folder,outputFname));
                 end
-                fv = resultsMap(sk)(dc)(fNames{fIdx})(mcSimNum,:);
-                if(isnan(fv(1)))  % only run the feature selection if we need to!
+                fv_Matrix = resultsMap(sk,dc,fNames{fIdx});
+                featureVec = fv_Matrix(mcSimNum,:);
+                if(isnan(featureVec(1)))  % only run the feature selection if we need to!
                     featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{fIdx}, functionArgsCell{fIdx});
                     % store the results in the appropriate map;
-                    resultsMap(sk)(dc)(fNames{fIdx})(mcSimNum,:) = featureVec;
+                    fv_Matrix(mcSimNum,:) = featureVec;
+                    resultsMap(sk,dc,fNames{fIdx}) = fv_Matrix;
 
                     % save as we go through the data so that we can pick up where we left off
                     % save only when we update
@@ -240,17 +241,17 @@ numMCSims = 10;
 
 % setup output filename
 inputFname = sprintf('res_%d_%d_%d_%d_%d.mat',...
-    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims)
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
 load(fullfile(folder,inputFname))
 
 for sk=skews
     for dc=dep_clusters
-        fprintf('***** %s-%s *****',sk,dc);
+%         fprintf('***** %s-%s *****',sk,dc);
         for estimator=fNames
             % get the selected matrix
-            X = resultsMap(sk)(dc)(estimator);
+            X = resultsMap(sk,dc,estimator);
             score_vec = score_synthetic_fs(X,numIndependentFeatures,numRedundantFeatures,numUselessFeatures);
-            fprintf('\t %s-->[%0.02f,%0.02f]',estimator,mean(score_vec),var(score_vec));
+%             fprintf('\t %s-->[%0.02f,%0.02f]',estimator,mean(score_vec),var(score_vec));
         end
     end
 end
