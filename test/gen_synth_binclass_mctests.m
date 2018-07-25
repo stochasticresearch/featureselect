@@ -131,13 +131,13 @@ for skIdx=1:length(skews)
     for dcIdx=1:length(dep_clusters)
         dc = dep_clusters{dcIdx};
         if(strcmp(dc,'lo_cluster'))
-            corrVec = linspace(0.1,0.4,numIndependentFeatures);
+            corrVec = linspace(0.15,0.4,numIndependentFeatures);
         elseif(strcmp(dc,'med_cluster'))
             corrVec = linspace(0.3,0.7,numIndependentFeatures);
         elseif(strcmp(dc,'hi_cluster'))
-            corrVec = linspace(0.6,0.9,numIndependentFeatures);
+            corrVec = linspace(0.6,0.85,numIndependentFeatures);
         else
-            corrVec = linspace(0.1,0.9,numIndependentFeatures);
+            corrVec = linspace(0.15,0.85,numIndependentFeatures);
         end
         
         R = eye(numIndependentFeatures+1);
