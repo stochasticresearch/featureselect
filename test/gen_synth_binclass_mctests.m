@@ -230,28 +230,63 @@ end
 
 % the configuration we want to score
 
-numIndependentFeatures = 4;
-numRedundantFeatures = 10;
-numUselessFeatures = 36;
+numIndependentFeatures = 20;
+numRedundantFeatures = 20;
+numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+fNames = {'h_mi','cim','knn_1','knn_6','knn_20','ap'};
 numSamps = 100;
-numMCSims = 10;
+numMCSims = 50;
 
 % setup output filename
 inputFname = sprintf('res_%d_%d_%d_%d_%d.mat',...
     numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
 load(fullfile(folder,inputFname))
 
-for sk=skews
-    for dc=dep_clusters
-%         fprintf('***** %s-%s *****',sk,dc);
-        for estimator=fNames
+% bar plot configuration
+numBars = length(fNames);
+numGroups = length(dep_clusters);
+width = 1;
+groupnames = {'Low','Med','Hi','All'};
+titles = {'Left-Skew','No-Skew','Right-Skew'};
+bw_xlabel = [];
+bw_ylabel = [];
+bw_color_map = jet;
+gridstatus = 'y';
+bw_legend_val = {'H_{MI}','CIM','KNN-1','KNN-6','KNN-20','AP'};
+error_sides = 2;
+legend_type = 'plot';
+legendTextSize = 20;
+labelTextSize = 20;
+groupTextSize = 20;
+
+for skIdx=1:length(skews)
+    sk = skews{skIdx};
+    barMatrix_val = zeros(numGroups,numBars);
+    barMatrix_err = zeros(numGroups,numBars);
+    bw_title = titles{skIdx};
+    for dcIdx=1:length(dep_clusters)
+        dc = dep_clusters{dcIdx};
+        fprintf('***** %s-%s *****\n',sk,dc);
+        for fIdx=1:length(fNames)
+            estimator = fNames{fIdx};
             % get the selected matrix
             X = resultsMap(sk,dc,estimator);
             score_vec = score_synthetic_fs(X,numIndependentFeatures,numRedundantFeatures,numUselessFeatures);
-%             fprintf('\t %s-->[%0.02f,%0.02f]',estimator,mean(score_vec),var(score_vec));
+            fprintf('\t %s-->[%0.02f,%0.02f]\n',estimator,mean(score_vec),std(score_vec));
+            barMatrix_val(dcIdx,fIdx) = mean(score_vec);
+            barMatrix_err(dcIdx,fIdx) = std(score_vec)/2;
         end
     end
+    subplot(1,3,skIdx);
+    if(skIdx==length(skews))
+        bw_legend = bw_legend_val;
+    else
+        bw_legend = [];
+    end
+    barweb(barMatrix_val,barMatrix_err,width,groupnames,bw_title,bw_xlabel,bw_ylabel,...
+        bw_color_map,gridstatus,bw_legend,error_sides,legend_type,...
+        legendTextSize, labelTextSize, groupTextSize);
 end
