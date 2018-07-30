@@ -112,6 +112,7 @@ mine_alpha = 0.6;
 rdc_k = 20;
 rdc_s = 1/6;
 
+% TODO: combine this section w/ below for indices
 % functionHandlesCell = {@taukl_cc_mi_mex_interface;
 %                        @tau_mi_interface;
 %                        @cim;
