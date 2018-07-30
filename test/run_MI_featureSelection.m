@@ -107,29 +107,43 @@ knn_6 = 6;
 knn_20 = 20;
 msi = 0.015625; alpha = 0.2; 
 autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+mine_c = 15;
+mine_alpha = 0.6;
+rdc_k = 20;
+rdc_s = 1/6;
 
-functionHandlesCell = {@taukl_cc_mi_mex_interface;
-                       @tau_mi_interface;
-                       @cim;
-                       @KraskovMI_cc_mex;
-                       @KraskovMI_cc_mex;
-                       @KraskovMI_cc_mex;
-                       @vmeMI_interface;
-                       @apMI_interface;
-                       @h_mi_interface};
+% functionHandlesCell = {@taukl_cc_mi_mex_interface;
+%                        @tau_mi_interface;
+%                        @cim;
+%                        @KraskovMI_cc_mex;
+%                        @KraskovMI_cc_mex;
+%                        @KraskovMI_cc_mex;
+%                        @vmeMI_interface;
+%                        @apMI_interface;
+%                        @h_mi_interface};
+% 
+% functionArgsCell    = {{0,1,0};
+%                        {};
+%                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+%                        {knn_1};
+%                        {knn_6};
+%                        {knn_20};
+%                        {};
+%                        {};
+%                        {1}};
+% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
 
-functionArgsCell    = {{0,1,0};
+functionHandlesCell = {@dcor;
+                       @mine_interface_mic;
+                       @corr;
+                       @rdc;};
+functionArgsCell    = {{};
+                       {mine_alpha,mine_c,'mic_e'};
                        {};
-                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
-                       {knn_1};
-                       {knn_6};
-                       {knn_20};
-                       {};
-                       {};
-                       {1}};
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
+                       {rdc_k, rdc_s};};
+fNames = {'dCor','MIC','corr','RDC'};
 
-datasets = {'dexter','dorothea','arcene','madelon','gisette'};
+datasets = {'dexter','arcene','madelon','gisette'};
 
 dispstat('','init'); % One time only initialization
 dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
