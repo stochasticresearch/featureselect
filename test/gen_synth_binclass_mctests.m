@@ -29,12 +29,12 @@ noSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.5,0.5]);
 rightSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.9,0.1]);
 
 % configure the data generation
-numIndependentFeatures = 4;
-numRedundantFeatures = 10;
-numUselessFeatures = 36;
+numIndependentFeatures = 20;
+numRedundantFeatures = 20;
+numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
-numSamps = 250;
+numSamps = 250;  % run for 250,500
 
 % create redundant feature possibilities
 fpCell = {}; fpCellIdx = 1;
@@ -65,7 +65,7 @@ randomFeaturesCell{10} = makedist('Weibull');
 numMCSims = 50;
 
 % setup output filename
-outputFname = sprintf('res_%d_%d_%d_%d_%d.mat',...
+outputFname = sprintf('res_%d_%d_%d_%d_%d_depmeas.mat',...
     numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
 
 % setup estimators and feature selection framework
@@ -74,28 +74,40 @@ knn_6 = 6;
 knn_20 = 20;
 msi = 0.015625; alpha = 0.2; 
 autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+mine_c = 15;
+mine_alpha = 0.6;
+rdc_k = 20;
+rdc_s = 1/6;
 
-functionHandlesCell = {@taukl_cc_mi_mex_interface;
-                       @tau_mi_interface;
-                       @cim;
-                       @KraskovMI_cc_mex;
-                       @KraskovMI_cc_mex;
-                       @KraskovMI_cc_mex;
-%                        @vmeMI_interface;
-                       @apMI_interface;
-                       @h_mi_interface};
+% functionHandlesCell = {@taukl_cc_mi_mex_interface;
+%                        @tau_mi_interface;
+%                        @cim;
+%                        @KraskovMI_cc_mex;
+%                        @KraskovMI_cc_mex;
+%                        @KraskovMI_cc_mex;
+%                        @apMI_interface;
+%                        @h_mi_interface};
 
-functionArgsCell    = {{0,1,0};
-                       {};
-                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
-                       {knn_1};
-                       {knn_6};
-                       {knn_20};
+% functionArgsCell    = {{0,1,0};
 %                        {};
+%                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+%                        {knn_1};
+%                        {knn_6};
+%                        {knn_20};
+%                        {};
+%                        {1}};
+% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+functionHandlesCell = {@dcor;
+                       @mine_interface_mic;
+                       @corr;
+                       @rdc;};
+functionArgsCell    = {{};
+                       {mine_alpha,mine_c,'mic_e'};
                        {};
-                       {1}};
-% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+                       {rdc_k, rdc_s};};
+fNames = {'dCor','MIC','corr','RDC'};
+
+
 numFeaturesToSelect = min(50,numUselessFeatures+numRedundantFeatures+numIndependentFeatures);  % maximum # of features to select
 
 % setup data structure to hold results

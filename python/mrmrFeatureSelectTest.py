@@ -22,7 +22,8 @@ from sklearn.neighbors import KNeighborsClassifier
 
 import pandas as pd
 
-miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi']
+miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi', 
+                'dCor', 'MIC', 'corr', 'RDC']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
 
