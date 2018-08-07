@@ -22,8 +22,11 @@ from sklearn.neighbors import KNeighborsClassifier
 
 import pandas as pd
 
-miEstimators = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi', 
+miEstimators = ['cim', 'taukl',
+                'knn_1','knn_6','knn_20','vme', 'ap', 'h_mi', 
                 'dCor', 'MIC', 'corr', 'RDC']
+miEstimators_toPlot = ['cim','taukl','dCor','MIC','RDC']
+# miEstimators_toPlot = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
 
@@ -175,13 +178,17 @@ def _readNips2003Data_skewed(dataset,skew=0.1):
 def evaluateClassificationPerformance(classifierStr, dataset):
     (X,y,miFeatureSelections) = readDataset(dataset)
 
-    resultsMean = np.empty((len(miEstimators),MAX_NUM_FEATURES))
-    resultsVar = np.empty((len(miEstimators),MAX_NUM_FEATURES))
-    resultsMean.fill(np.nan)
-    resultsVar.fill(np.nan)
+    # resultsMean = np.empty((len(miEstimators),MAX_NUM_FEATURES))
+    # resultsVar = np.empty((len(miEstimators),MAX_NUM_FEATURES))
+    # resultsMean.fill(np.nan)
+    # resultsVar.fill(np.nan)
+    resultsDict_mean = {}
+    resultsDict_var  = {}
 
     eIdx = 0
     for estimator in miEstimators:
+        resultsDict_mean[estimator] = np.empty(MAX_NUM_FEATURES)
+        resultsDict_var[estimator]  = np.empty(MAX_NUM_FEATURES)
         featureVecAsList = miFeatureSelections[estimator]
         if(featureVecAsList is not None):
             featureVec = np.squeeze(np.asarray(miFeatureSelections[estimator]))
@@ -208,17 +215,19 @@ def evaluateClassificationPerformance(classifierStr, dataset):
                 mu = scores.mean()
                 sigma_sq = scores.std()*2
                 
-                resultsMean[eIdx,ii-1] = mu
-                resultsVar[eIdx,ii-1] = sigma_sq
+                # resultsMean[eIdx,ii-1] = mu
+                # resultsVar[eIdx,ii-1] = sigma_sq
+                resultsDict_mean[estimator][ii-1] = mu
+                resultsDict_var[estimator][ii-1]  = sigma_sq
 
         eIdx = eIdx + 1
 
-    return (resultsMean,resultsVar)
+    return (resultsDict_mean,resultsDict_var)
 
 def generate_skew_comparison_plots(algorithm='RandomForest'):
-    datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette',
-                      'arcene_0.25','dexter_0.25','madelon_0.25','gisette_0.25',
-                      'arcene_0.50','dexter_0.50','madelon_0.50','gisette_0.50']
+    datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette',]
+                      # 'arcene_0.25','dexter_0.25','madelon_0.25','gisette_0.25',
+                      # 'arcene_0.50','dexter_0.50','madelon_0.50','gisette_0.50']
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
@@ -246,17 +255,21 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
             pickle.dump(dataDict,f)
 
     # plot the stuff & store
-    estimatorsLegend = map(lambda x:x.upper(),miEstimators)
+    estimatorsLegend = map(lambda x:x.upper(),miEstimators_toPlot)
     try:
         estimatorsLegend[estimatorsLegend.index('TAUKL')]  = r'$\tau_{KL}$'
     except:
         pass
     if('tau' in miEstimators):
         estimatorsLegend[estimatorsLegend.index('TAU')]  = r'$\tau$'
-    estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
-    estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
-    estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
-    estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
+    if('VME' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
+    if('KNN_1' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
+    if('KNN_6' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
+    if('KNN_20' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
     datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette']
     skews = [0.5,0.75,'full']
@@ -288,14 +301,14 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
             y_train = z_data['y_train']
             y_train = np.squeeze(np.asarray(y_train))
             unique_elements, counts_elements = np.unique(y_train, return_counts=True)
-            print(counts_elements)
             num_neg_one = counts_elements[0]
             num_pos_one = counts_elements[1]
 
             lineHandlesVec = []
-            for estimatorIdx in range(z['resultsMean'].shape[0]):
-                resultsMean = z['resultsMean'][estimatorIdx,:]
-                results2Var = z['resultsVar'][estimatorIdx,:]
+            # for estimatorIdx in range(z['resultsMean'].shape[0]):
+            for estimator in miEstimators_toPlot:
+                resultsMean = z['resultsMean'][estimator]
+                results2Var = z['resultsVar'][estimator]
                 resultsStd = np.sqrt(results2Var/2.)
                 xx = range(1,len(resultsMean)+1)
 
@@ -340,6 +353,7 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
 
 
 def generate_alg_comparsion_plots():
+    # NOTE: NEED TO UPDATE!!!!!!!!!!!!!!!!
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
@@ -375,10 +389,14 @@ def generate_alg_comparsion_plots():
         pass
     if('tau' in miEstimators):
         estimatorsLegend[estimatorsLegend.index('TAU')]  = r'$\tau$'
-    estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
-    estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
-    estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
-    estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
+    if('VME' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('VME')]    = 'vME'
+    if('KNN_1' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('KNN_1')]  = r'$KNN_1$'
+    if('KNN_6' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('KNN_6')]  = r'$KNN_6$'
+    if('KNN_20' in miEstimators):
+        estimatorsLegend[estimatorsLegend.index('KNN_20')] = r'$KNN_{20}$'
 
     for dataset in datasetsToTest:
         resultsDir = os.path.join(getDataFolder(dataset),'classification_results')
