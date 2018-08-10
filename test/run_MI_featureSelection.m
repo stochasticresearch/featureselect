@@ -112,37 +112,34 @@ mine_alpha = 0.6;
 rdc_k = 20;
 rdc_s = 1/6;
 
-% TODO: combine this section w/ below for indices
-% functionHandlesCell = {@taukl_cc_mi_mex_interface;
-%                        @tau_mi_interface;
-%                        @cim;
-%                        @KraskovMI_cc_mex;
-%                        @KraskovMI_cc_mex;
-%                        @KraskovMI_cc_mex;
-%                        @vmeMI_interface;
-%                        @apMI_interface;
-%                        @h_mi_interface};
-% 
-% functionArgsCell    = {{0,1,0};
-%                        {};
-%                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
-%                        {knn_1};
-%                        {knn_6};
-%                        {knn_20};
-%                        {};
-%                        {};
-%                        {1}};
-% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
-
-functionHandlesCell = {@dcor;
+functionHandlesCell = {@taukl_cc_mi_mex_interface;
+                       @tau_mi_interface;
+                       @cim;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @vmeMI_interface;
+                       @apMI_interface;
+                       @h_mi_interface;
+                       @dcor;
                        @mine_interface_mic;
                        @corr;
                        @rdc;};
-functionArgsCell    = {{};
+functionArgsCell    = {{0,1,0};
+                       {};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};
+                       {1};
+                       {};
                        {mine_alpha,mine_c,'mic_e'};
                        {};
                        {rdc_k, rdc_s};};
-fNames = {'dCor','MIC','corr','RDC'};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi',...
+    'dCor','MIC','corr','RDC'};
 
 datasets = {'dexter','arcene','madelon','gisette'};
 
@@ -240,38 +237,34 @@ mine_alpha = 0.6;
 rdc_k = 20;
 rdc_s = 1/6;
 
-% TODO: combine this section w/ below for indices
-% functionHandlesCell = {@taukl_cc_mi_mex_interface;
-%                        @tau_mi_interface;
-%                        @cim;
-%                        @KraskovMI_cc_mex;
-%                        @KraskovMI_cc_mex;
-%                        @KraskovMI_cc_mex;
-%                        @vmeMI_interface;
-%                        @apMI_interface;
-%                        @h_mi_interface};
-
-% functionArgsCell    = {{0,1,0};
-%                        {};
-%                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
-%                        {knn_1};
-%                        {knn_6};
-%                        {knn_20};
-%                        {};
-%                        {};
-%                        {1}};
-% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
-
-functionHandlesCell = {@dcor;
+functionHandlesCell = {@taukl_cc_mi_mex_interface;
+                       @tau_mi_interface;
+                       @cim;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @vmeMI_interface;
+                       @apMI_interface;
+                       @h_mi_interface;
+                       @dcor;
                        @mine_interface_mic;
                        @corr;
                        @rdc;};
-functionArgsCell    = {{};
+functionArgsCell    = {{0,1,0};
+                       {};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};
+                       {1};
+                       {};
                        {mine_alpha,mine_c,'mic_e'};
                        {};
                        {rdc_k, rdc_s};};
-fNames = {'dCor','MIC','corr','RDC'};
-
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi',...
+    'dCor','MIC','corr','RDC'};
 
 datasets = {'dexter','arcene','madelon','gisette'};
 
@@ -339,7 +332,15 @@ functionHandlesCell = {@taukl_cc_mex_interface;
                        @KraskovMI_cc_mex;
                        @vmeMI_interface;
                        @apMI_interface;
-                       @h_mi_interface};
+                       @h_mi_interface;
+                       @dcor;
+                       @mine_interface_mic;
+                       @corr;
+                       @rdc;
+                       {};
+                       {mine_alpha,mine_c,'mic_e'};
+                       {};
+                       {rdc_k, rdc_s};};
 
 functionArgsCell    = {{0,1,0};
                        {'type','kendall'};
@@ -351,7 +352,8 @@ functionArgsCell    = {{0,1,0};
                        {};
                        {1}};
 
-fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi',...
+          'dCor','MIC','corr','RDC'};
 % datasets = {'dexter','dorothea','gisette','arcene','madelon'};
 datasets = {'dexter','gisette','arcene','madelon'};
 
@@ -401,7 +403,7 @@ end
 % fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 % fNames = {'cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
 % fNames = {'cim','h_mi','knn_1','knn_6','knn_20','ap'};
-fNames = {'cim','h_mi'};
+fNames = {'cim','h_mi','dCor','RDC'};
 datasets = {'dexter','gisette','arcene','madelon'};
 skew_levels = {'0.50','0.75','no-skew'};
 
@@ -428,10 +430,12 @@ for dIdx=1:length(datasets)
         fIn = fullfile(folder,dataset,fs_outputFname);
         clear t
         load(fIn);
-        subplot(2,4,(ii-1)*4+1);
+        subplot(2,length(fNames),ii);
         histogram(t,nbins,'normalization','probability');
         title(strcat(estimator_name,'-ifs'));
         
+        legendCell = cell(1,length(skew_levels));
+        subplot(2,length(fNames),ii+length(fNames));
         estimator_selected_features = zeros(3,num_features_to_compute_ovlp);  % 3 skews, 50 max features selected
         for jj=1:length(skew_levels)
             skl = skew_levels{jj};
@@ -447,12 +451,14 @@ for dIdx=1:length(datasets)
                 load(fIn);
                 estimator_selected_features(jj,:) = featureVec(1:num_features_to_compute_ovlp);
             end
-            subplot(2,4,(ii-1)*4+(jj+1));
             featureVec_strength_of_association = t(featureVec);
-            histogram(featureVec_strength_of_association,nbins);
-            title(strcat(fNames{ii},'-',skl));
+            histogram(featureVec_strength_of_association,nbins,'normalization','probability');
+            legendCell{jj} = skl;
+            hold on;
         end
-        
+        title(fNames{ii});
+        legend(legendCell);
+
         % for the selected features, compute the monotonicity using CIM
         feat_sel_vec = estimator_selected_features(3,:);
         num_regions_arr = zeros(1,size(feat_sel_vec,2));

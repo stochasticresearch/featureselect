@@ -79,34 +79,32 @@ mine_alpha = 0.6;
 rdc_k = 20;
 rdc_s = 1/6;
 
-% functionHandlesCell = {@taukl_cc_mi_mex_interface;
-%                        @tau_mi_interface;
-%                        @cim;
-%                        @KraskovMI_cc_mex;
-%                        @KraskovMI_cc_mex;
-%                        @KraskovMI_cc_mex;
-%                        @apMI_interface;
-%                        @h_mi_interface};
-
-% functionArgsCell    = {{0,1,0};
-%                        {};
-%                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
-%                        {knn_1};
-%                        {knn_6};
-%                        {knn_20};
-%                        {};
-%                        {1}};
-% fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
-functionHandlesCell = {@dcor;
+functionHandlesCell = {@taukl_cc_mi_mex_interface;
+                       @tau_mi_interface;
+                       @cim;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @KraskovMI_cc_mex;
+                       @apMI_interface;
+                       @h_mi_interface;
+                       @dcor;
                        @mine_interface_mic;
                        @corr;
                        @rdc;};
-functionArgsCell    = {{};
+functionArgsCell    = {{0,1,0};
+                       {};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {1};
+                       {};
                        {mine_alpha,mine_c,'mic_e'};
                        {};
                        {rdc_k, rdc_s};};
-fNames = {'dCor','MIC','corr','RDC'};
-
+fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi',...
+    'dCor','MIC','corr','RDC'};
 
 numFeaturesToSelect = min(50,numUselessFeatures+numRedundantFeatures+numIndependentFeatures);  % maximum # of features to select
 
@@ -248,8 +246,8 @@ numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
 % fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
-fNames = {'h_mi','cim','knn_1','knn_6','knn_20','ap'};
-numSamps = 100;
+fNames = {'h_mi','cim','dCor','MIC','RDC','knn_1','knn_6','knn_20','ap'};
+numSamps = 500;
 numMCSims = 50;
 
 % setup output filename
@@ -265,9 +263,9 @@ groupnames = {'Low','Med','Hi','All'};
 titles = {'Left-Skew','No-Skew','Right-Skew'};
 bw_xlabel = [];
 bw_ylabel = [];
-bw_color_map = jet;
+bw_color_map = parula;
 gridstatus = 'y';
-bw_legend_val = {'H_{MI}','CIM','KNN-1','KNN-6','KNN-20','AP'};
+bw_legend_val = {'H_{MI}','CIM','dCor','MIC','RDC','KNN-1','KNN-6','KNN-20','AP'};
 error_sides = 2;
 legend_type = 'plot';
 legendTextSize = 20;
@@ -278,7 +276,7 @@ for skIdx=1:length(skews)
     sk = skews{skIdx};
     barMatrix_val = zeros(numGroups,numBars);
     barMatrix_err = zeros(numGroups,numBars);
-    bw_title = titles{skIdx};
+    bw_title = sprintf('(+RFS) N=%d | %s',numSamps,titles{skIdx});
     for dcIdx=1:length(dep_clusters)
         dc = dep_clusters{dcIdx};
         fprintf('***** %s-%s *****\n',sk,dc);
@@ -286,19 +284,71 @@ for skIdx=1:length(skews)
             estimator = fNames{fIdx};
             % get the selected matrix
             X = resultsMap(sk,dc,estimator);
-            score_vec = score_synthetic_fs(X,numIndependentFeatures,numRedundantFeatures,numUselessFeatures);
+% %             score_vec = score_synthetic_fs(X,numIndependentFeatures,numRedundantFeatures,numUselessFeatures);
+            score_vec = score_synthetic_fs_v2(X,numIndependentFeatures,numRedundantFeatures);
             fprintf('\t %s-->[%0.02f,%0.02f]\n',estimator,mean(score_vec),std(score_vec));
             barMatrix_val(dcIdx,fIdx) = mean(score_vec);
             barMatrix_err(dcIdx,fIdx) = std(score_vec)/2;
         end
     end
-    subplot(1,3,skIdx);
-    if(skIdx==length(skews))
-        bw_legend = bw_legend_val;
-    else
-        bw_legend = [];
-    end
+%     subplot(1,3,skIdx);
+%     if(skIdx==length(skews))
+%         bw_legend = bw_legend_val;
+%     else
+%         bw_legend = [];
+%     end
+	figure;
+    bw_legend = bw_legend_val;
     barweb(barMatrix_val,barMatrix_err,width,groupnames,bw_title,bw_xlabel,bw_ylabel,...
         bw_color_map,gridstatus,bw_legend,error_sides,legend_type,...
         legendTextSize, labelTextSize, groupTextSize);
 end
+
+
+%% merge depmeas & mi results into one map that we can score easily
+
+clear;
+clc;
+dbstop if error;
+
+if(ispc)
+    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\synthetic_feature_select';
+elseif(ismac)
+    folder = '/Users/Kiran/ownCloud/PhD/sim_results/synthetic_feature_select';
+else
+    folder = '/home/kiran/ownCloud/PhD/sim_results/synthetic_feature_select';
+end
+
+numIndependentFeatures = 20;
+numRedundantFeatures = 20;
+numUselessFeatures = 160;
+numSamps = 500;
+numMCSims = 50;
+
+f1 = sprintf('res_%d_%d_%d_%d_%d_depmeas.mat',...
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
+f2 = sprintf('res_%d_%d_%d_%d_%d.mat',...
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
+
+ff1 = fullfile(folder,f1);
+ff2 = fullfile(folder,f2);
+load(ff1);
+resultsMap_depmeas = resultsMap;
+load(ff2);
+resultsMap_dpi = resultsMap;
+resultsMap = resultsMap_dpi;
+
+skews = {'left_skew','no_skew','right_skew'};
+dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
+depMeasNames = {'dCor','MIC','corr','RDC'};
+
+for skIdx=1:length(skews)
+    for dcIdx=1:length(dep_clusters)
+        for dpIdx=1:length(depMeasNames)
+            resultsMap(skews{skIdx},dep_clusters{dcIdx},depMeasNames{dpIdx}) = resultsMap_depmeas(skews{skIdx},dep_clusters{dcIdx},depMeasNames{dpIdx});
+        end
+    end
+end
+
+% save resultsMap as the original file
+save(ff2,'resultsMap');
