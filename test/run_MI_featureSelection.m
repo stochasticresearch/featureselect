@@ -336,11 +336,7 @@ functionHandlesCell = {@taukl_cc_mex_interface;
                        @dcor;
                        @mine_interface_mic;
                        @corr;
-                       @rdc;
-                       {};
-                       {mine_alpha,mine_c,'mic_e'};
-                       {};
-                       {rdc_k, rdc_s};};
+                       @rdc};
 
 functionArgsCell    = {{0,1,0};
                        {'type','kendall'};
@@ -350,7 +346,11 @@ functionArgsCell    = {{0,1,0};
                        {knn_20};
                        {};
                        {};
-                       {1}};
+                       {1};
+                       {};
+                       {mine_alpha,mine_c,'mic_e'};
+                       {};
+                       {rdc_k, rdc_s};};
 
 fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi',...
           'dCor','MIC','corr','RDC'};
