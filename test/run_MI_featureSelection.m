@@ -459,27 +459,27 @@ for dIdx=1:length(datasets)
         title(fNames{ii});
         legend(legendCell);
 
-        % for the selected features, compute the monotonicity using CIM
-        feat_sel_vec = estimator_selected_features(3,:);
-        num_regions_arr = zeros(1,size(feat_sel_vec,2));
-        for kk=1:size(feat_sel_vec,2)
-            xxx = X(:,feat_sel_vec(kk));
-            [~,regions] = cim(xxx,y,msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator);
-            num_regions = size(regions,2);
-            num_regions_arr(kk) = num_regions;
-        end
+%         % for the selected features, compute the monotonicity using CIM
+%         feat_sel_vec = estimator_selected_features(3,:);
+%         num_regions_arr = zeros(1,size(feat_sel_vec,2));
+%         for kk=1:size(feat_sel_vec,2)
+%             xxx = X(:,feat_sel_vec(kk));
+%             [~,regions] = cim(xxx,y,msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator);
+%             num_regions = size(regions,2);
+%             num_regions_arr(kk) = num_regions;
+%         end
         
         % compute the % of features which remained the same and output that
         % information
         ovlp_noskew_and_fifty = length(intersect(estimator_selected_features(3,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
         ovlp_noskew_and_seventyfive = length(intersect(estimator_selected_features(3,:),estimator_selected_features(2,:)))*100/num_features_to_compute_ovlp;
         ovlp_fifty_and_seventyfive = length(intersect(estimator_selected_features(2,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
-%         fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f, 0.5/0.75=%0.02f\n',...
-%             dataset,estimator_name,ovlp_noskew_and_fifty,...
-%             ovlp_noskew_and_seventyfive,ovlp_fifty_and_seventyfive);
-        fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f mean(#regions)=%0.02f \n',...
+        fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f, 0.5/0.75=%0.02f\n',...
             dataset,estimator_name,ovlp_noskew_and_fifty,...
-            ovlp_noskew_and_seventyfive,mean(num_regions_arr));
+            ovlp_noskew_and_seventyfive,ovlp_fifty_and_seventyfive);
+%         fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f mean(#regions)=%0.02f \n',...
+%             dataset,estimator_name,ovlp_noskew_and_fifty,...
+%             ovlp_noskew_and_seventyfive,mean(num_regions_arr));
         
     end
     suptitle(dataset);
