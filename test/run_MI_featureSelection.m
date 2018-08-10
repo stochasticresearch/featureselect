@@ -323,6 +323,10 @@ knn_6 = 6;
 knn_20 = 20;
 msi = 0.015625; alpha = 0.2; 
 autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+mine_c = 15;
+mine_alpha = 0.6;
+rdc_k = 20;
+rdc_s = 1/6;
 
 functionHandlesCell = {@taukl_cc_mex_interface;
                        @corr;
