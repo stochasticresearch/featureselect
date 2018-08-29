@@ -407,7 +407,8 @@ end
 % fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap'};
 % fNames = {'cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
 % fNames = {'cim','h_mi','knn_1','knn_6','knn_20','ap'};
-fNames = {'cim','h_mi','dCor','RDC'};
+fNames = {'cim','h_mi','knn_6','ap'};
+titles = {'CIM','H_{MI}','KNN-6','AP'};
 datasets = {'dexter','gisette','arcene','madelon'};
 skew_levels = {'0.50','0.75','no-skew'};
 
@@ -436,7 +437,7 @@ for dIdx=1:length(datasets)
         load(fIn);
         subplot(2,length(fNames),ii);
         histogram(t,nbins,'normalization','probability');
-        title(strcat(estimator_name,'-ifs'));
+        title(strcat(titles{ii},'-ifs'));
         
         legendCell = cell(1,length(skew_levels));
         subplot(2,length(fNames),ii+length(fNames));
@@ -486,7 +487,7 @@ for dIdx=1:length(datasets)
 %             ovlp_noskew_and_seventyfive,mean(num_regions_arr));
         
     end
-    suptitle(dataset);
+    suptitle(upper(dataset));
     fprintf('\n');
 end
 

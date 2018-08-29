@@ -246,7 +246,8 @@ numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
 % fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','ap','h_mi'};
-fNames = {'h_mi','cim','dCor','MIC','RDC','knn_1','knn_6','knn_20','ap'};
+% fNames = {'h_mi','cim','dCor','MIC','RDC','knn_1','knn_6','knn_20','ap'};
+fNames = {'h_mi','cim','knn_1','knn_6','knn_20','ap'};
 numSamps = 500;
 numMCSims = 50;
 
@@ -265,10 +266,11 @@ bw_xlabel = [];
 bw_ylabel = [];
 bw_color_map = parula;
 gridstatus = 'y';
-bw_legend_val = {'H_{MI}','CIM','dCor','MIC','RDC','KNN-1','KNN-6','KNN-20','AP'};
+% bw_legend_val = {'H_{MI}','CIM','dCor','MIC','RDC','KNN-1','KNN-6','KNN-20','AP'};
+bw_legend_val = {'H_{MI}','CIM','KNN-1','KNN-6','KNN-20','AP'};
 error_sides = 2;
 legend_type = 'plot';
-legendTextSize = 20;
+legendTextSize = 17;
 labelTextSize = 20;
 groupTextSize = 20;
 
@@ -276,7 +278,7 @@ for skIdx=1:length(skews)
     sk = skews{skIdx};
     barMatrix_val = zeros(numGroups,numBars);
     barMatrix_err = zeros(numGroups,numBars);
-    bw_title = sprintf('(+RFS) N=%d | %s',numSamps,titles{skIdx});
+    bw_title = sprintf('N=%d | %s',numSamps,titles{skIdx});
     for dcIdx=1:length(dep_clusters)
         dc = dep_clusters{dcIdx};
         fprintf('***** %s-%s *****\n',sk,dc);

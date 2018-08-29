@@ -2,8 +2,8 @@ function [score_vec] = score_synthetic_fs_v2(X,numIndepFeatures,numRedundantFeat
 
 numFeaturesToScoreOn = numIndepFeatures+numRedundantFeatures;
 
-indepFeatureSelectScore = 0;
-redundantFeatureSelectScore = 1;
+indepFeatureSelectScore = 1;
+redundantFeatureSelectScore = 0;
 remainderScore = 0;
 % in this scoring mechanism, you just get points for every relevant
 % feature you select, with a configurable difference between whether you 
