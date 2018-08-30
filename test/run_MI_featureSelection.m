@@ -425,7 +425,7 @@ for dIdx=1:length(datasets)
     X = double(X_train);
     y = double(y_train);
     
-    figure;
+%     figure;
     for ii=1:length(fNames)
         estimator_name = fNames{ii};
         
@@ -435,34 +435,37 @@ for dIdx=1:length(datasets)
         fIn = fullfile(folder,dataset,fs_outputFname);
         clear t
         load(fIn);
-        subplot(2,length(fNames),ii);
+%         subplot(2,length(fNames),ii);
+        figure;
         histogram(t,nbins,'normalization','probability');
-        title(strcat(titles{ii},'-ifs'));
+%         title(strcat(titles{ii},'-ifs'));
+        title(strcat(titles{ii}));
+        grid on;
         
-        legendCell = cell(1,length(skew_levels));
-        subplot(2,length(fNames),ii+length(fNames));
-        estimator_selected_features = zeros(3,num_features_to_compute_ovlp);  % 3 skews, 50 max features selected
-        for jj=1:length(skew_levels)
-            skl = skew_levels{jj};
-            if(strcmp(skl,'no-skew'))
-                fs_Fname = strcat(dataset,'_fs_',estimator_name,'.mat');
-            else
-                fs_Fname = strcat(dataset,'_skew_',skl,'_fs_',estimator_name,'.mat');
-            end
-            fIn = fullfile(folder,dataset,fs_Fname);
-            % remove previous result for safety
-            clear featureVec
-            if(exist(fIn,'file'))
-                load(fIn);
-                estimator_selected_features(jj,:) = featureVec(1:num_features_to_compute_ovlp);
-            end
-            featureVec_strength_of_association = t(featureVec);
-            histogram(featureVec_strength_of_association,nbins,'normalization','probability');
-            legendCell{jj} = skl;
-            hold on;
-        end
-        title(fNames{ii});
-        legend(legendCell);
+%         legendCell = cell(1,length(skew_levels));
+%         subplot(2,length(fNames),ii+length(fNames));
+%         estimator_selected_features = zeros(3,num_features_to_compute_ovlp);  % 3 skews, 50 max features selected
+%         for jj=1:length(skew_levels)
+%             skl = skew_levels{jj};
+%             if(strcmp(skl,'no-skew'))
+%                 fs_Fname = strcat(dataset,'_fs_',estimator_name,'.mat');
+%             else
+%                 fs_Fname = strcat(dataset,'_skew_',skl,'_fs_',estimator_name,'.mat');
+%             end
+%             fIn = fullfile(folder,dataset,fs_Fname);
+%             % remove previous result for safety
+%             clear featureVec
+%             if(exist(fIn,'file'))
+%                 load(fIn);
+%                 estimator_selected_features(jj,:) = featureVec(1:num_features_to_compute_ovlp);
+%             end
+%             featureVec_strength_of_association = t(featureVec);
+%             histogram(featureVec_strength_of_association,nbins,'normalization','probability');
+%             legendCell{jj} = skl;
+%             hold on;
+%         end
+%         title(fNames{ii});
+%         legend(legendCell);
 
 %         % for the selected features, compute the monotonicity using CIM
 %         feat_sel_vec = estimator_selected_features(3,:);
@@ -476,19 +479,22 @@ for dIdx=1:length(datasets)
         
         % compute the % of features which remained the same and output that
         % information
-        ovlp_noskew_and_fifty = length(intersect(estimator_selected_features(3,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
-        ovlp_noskew_and_seventyfive = length(intersect(estimator_selected_features(3,:),estimator_selected_features(2,:)))*100/num_features_to_compute_ovlp;
-        ovlp_fifty_and_seventyfive = length(intersect(estimator_selected_features(2,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
-        fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f, 0.5/0.75=%0.02f\n',...
-            dataset,estimator_name,ovlp_noskew_and_fifty,...
-            ovlp_noskew_and_seventyfive,ovlp_fifty_and_seventyfive);
+%         ovlp_noskew_and_fifty = length(intersect(estimator_selected_features(3,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
+%         ovlp_noskew_and_seventyfive = length(intersect(estimator_selected_features(3,:),estimator_selected_features(2,:)))*100/num_features_to_compute_ovlp;
+%         ovlp_fifty_and_seventyfive = length(intersect(estimator_selected_features(2,:),estimator_selected_features(1,:)))*100/num_features_to_compute_ovlp;
+%         ovlp_all = length(intersect(estimator_selected_features(3,:),intersect(estimator_selected_features(2,:),estimator_selected_features(1,:))))*100/num_features_to_compute_ovlp;
+%         fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f, 0.5/0.75=%0.02f, all=%0.02f\n',...
+%             dataset,estimator_name,ovlp_noskew_and_fifty,...
+%             ovlp_noskew_and_seventyfive,ovlp_fifty_and_seventyfive,ovlp_all);
+%         fprintf('%s--%s all=%0.02f\n',...
+%             dataset,estimator_name,ovlp_all);
 %         fprintf('%s--%s 1.0/0.5=%0.02f 1.0/0.75=%0.02f mean(#regions)=%0.02f \n',...
 %             dataset,estimator_name,ovlp_noskew_and_fifty,...
 %             ovlp_noskew_and_seventyfive,mean(num_regions_arr));
         
     end
-    suptitle(upper(dataset));
-    fprintf('\n');
+%     suptitle(upper(dataset));
+%     fprintf('\n');
 end
 
 %% some tests to make sure that the serial and parallel versions of the
