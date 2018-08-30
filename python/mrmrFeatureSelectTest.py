@@ -22,11 +22,14 @@ from sklearn.neighbors import KNeighborsClassifier
 
 import pandas as pd
 
+import itertools
+from matplotlib.lines import Line2D
+
 miEstimators = ['cim', 'taukl',
                 'knn_1','knn_6','knn_20','vme', 'ap', 'h_mi', 
                 'dCor', 'MIC', 'corr', 'RDC']
-miEstimators_toPlot = ['cim','taukl','dCor','MIC','RDC']
-# miEstimators_toPlot = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi']
+# miEstimators_toPlot = ['cim','taukl','dCor','MIC','RDC']
+miEstimators_toPlot = ['cim','knn_1','knn_6','knn_20','vme', 'ap', 'h_mi']
 
 classifiersToTest = ['SVC','RandomForest','KNN']
 
@@ -228,6 +231,13 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
     datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette',]
                       # 'arcene_0.25','dexter_0.25','madelon_0.25','gisette_0.25',
                       # 'arcene_0.50','dexter_0.50','madelon_0.50','gisette_0.50']
+    markers = []
+    for m in Line2D.markers:
+        try:
+            if len(m) == 1 and m != ' ':
+                markers.append(m)
+        except TypeError:
+            pass
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
@@ -282,6 +292,7 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
         yMinVal = 1.0
         yMaxVal = 0.0
         for cIdx in range(len(skews)):
+            marker = itertools.cycle(markers) 
             skewVal = skews[cIdx]
             if(skewVal=='full'):
                 ds_str = dataset
@@ -313,7 +324,7 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
                 xx = range(1,len(resultsMean)+1)
 
                 y = resultsMean
-                h = ax[cIdx].plot(xx, y)
+                h = ax[cIdx].plot(xx, y, marker = marker.next(), linestyle='--')
 
                 yLo = resultsMean-results2Var/2.
                 yHi = resultsMean+results2Var/2.
