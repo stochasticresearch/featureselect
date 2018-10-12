@@ -1,4 +1,4 @@
-function [score_vec] = score_synthetic_fs_v2(X,numIndepFeatures,numRedundantFeatures)
+function [score_vec] = score_synthetic_fs_v3(X,numIndepFeatures,numRedundantFeatures)
 
 numFeaturesToScoreOn = numIndepFeatures+numRedundantFeatures;
 

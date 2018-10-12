@@ -231,13 +231,15 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
     datasets_to_plot = ['Arcene','Dexter','Madelon','Gisette',]
                       # 'arcene_0.25','dexter_0.25','madelon_0.25','gisette_0.25',
                       # 'arcene_0.50','dexter_0.50','madelon_0.50','gisette_0.50']
-    markers = []
-    for m in Line2D.markers:
-        try:
-            if len(m) == 1 and m != ' ':
-                markers.append(m)
-        except TypeError:
-            pass
+    # markers = []
+    # for m in Line2D.markers:
+    #     try:
+    #         if len(m) == 1 and m != ' ':
+    #             markers.append(m)
+    #     except TypeError:
+    #         pass
+    markers = ['o','v','^','*','+','p','h']
+
     # run the ML
     for datasetIdx in range(len(datasetsToTest)):
         print('*'*10 + ' ' + datasetsToTest[datasetIdx] + ' ' + '*'*10)        
@@ -324,7 +326,7 @@ def generate_skew_comparison_plots(algorithm='RandomForest'):
                 xx = range(1,len(resultsMean)+1)
 
                 y = resultsMean
-                h = ax[cIdx].plot(xx, y, marker = marker.next(), linestyle='--')
+                h = ax[cIdx].plot(xx, y, marker = marker.next(), linestyle='dashed', linewidth=1, markersize=6, fillstyle='none')
 
                 yLo = resultsMean-results2Var/2.
                 yHi = resultsMean+results2Var/2.
