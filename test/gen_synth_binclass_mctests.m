@@ -42,7 +42,8 @@ fpCell = cell(1,length(cnkOut));
 for jj=1:size(cnkOut,1)
     fpCell{jj} = cnkOut(jj,:);
 end
-operators = {@plus,@times};
+% operators = {@plus,@times};
+operators = {@plus};
 
 % create possibilities for random features
 numPossibleRandomFeatures = 10;
@@ -62,7 +63,7 @@ randomFeaturesCell{10} = makedist('Weibull');
 numMCSims = 50;
 
 % setup output filename
-outputFname = sprintf('res_%d_%d_%d_%d_%d.mat',...
+outputFname = sprintf('res_%d_%d_%d_%d_%d_plusOpOnly.mat',...
     numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
 
 % setup estimators and feature selection framework
@@ -95,7 +96,7 @@ numFeaturesToSelect = min(50,numRedundantFeatures+numIndependentFeatures);  % ma
 % setup data structure to hold results
 selectedFeaturesResultsMap = MapNested();
 depWithOutputResultsMap = MapNested();
-% interDepResultsMap = MapNested();
+interDepResultsMap = MapNested();
 X_dim_total = numIndependentFeatures+numRedundantFeatures+numUselessFeatures;
 numTotalFeatures = numIndependentFeatures+numRedundantFeatures;
 for mkIdx=1:length(skews)
@@ -106,7 +107,7 @@ for mkIdx=1:length(skews)
             f = fNames{fIdx};
             selectedFeaturesResultsMap(sk,dc,f) = nan(numMCSims,numFeaturesToSelect);
             depWithOutputResultsMap(sk,dc,f) = nan(numMCSims,X_dim_total);
-%             interDepResultsMap(sk,dc,f) = nan(numMCSims,numTotalFeatures,numTotalFeatures);
+            interDepResultsMap(sk,dc,f) = nan(numMCSims,numTotalFeatures,numTotalFeatures);
         end
     end
 end
@@ -225,26 +226,28 @@ for skIdx=1:length(skews)
                     outputDep_Matrix(mcSimNum,:) = pairwiseVec;
                     depWithOutputResultsMap(sk,dc,f) = outputDep_Matrix;
                     
-%                     % compute interdependent associations
-%                     RR = zeros(numTotalFeatures,numTotalFeatures);
-%                     for zz1=1:numTotalFeatures
-%                         xx = X(:,zz1);
-%                         parfor zz2=zz1+1:numTotalFeatures
-%                             yy = X(:,zz2);
-%                             RR(zz1,zz2) = functionHandle(xx,yy,argsCell{:});
-%                         end
-%                     end
-%                     RR = RR+RR';  % make it a symmetric matrix by assigning lower triangle to the upper triangle
-%                     RR(1:numTotalFeatures+1:numTotalFeatures*numTotalFeatures) = 0; % set diagnonal to 0
-%                     % assign to output
-%                     interDepTensor = interDepResultsMap(sk,dc,f);
-%                     interDepTensor(mcSimNum,:,:) = RR;
-%                     interDepResultsMap(sk,dc,f) = interDepTensor;
+                    % compute interdependent associations
+                    RR = zeros(numTotalFeatures,numTotalFeatures);
+                    for zz1=1:numTotalFeatures
+                        xx = X(:,zz1);
+                        parfor zz2=zz1+1:numTotalFeatures
+                            yy = X(:,zz2);
+                            RR(zz1,zz2) = functionHandle(xx,yy,argsCell{:});
+                        end
+                    end
+                    RR = RR+RR';  % make it a symmetric matrix by assigning lower triangle to the upper triangle
+                    RR(1:numTotalFeatures+1:numTotalFeatures*numTotalFeatures) = 0; % set diagnonal to 0
+                    % assign to output
+                    interDepTensor = interDepResultsMap(sk,dc,f);
+                    interDepTensor(mcSimNum,:,:) = RR;
+                    interDepResultsMap(sk,dc,f) = interDepTensor;
 
                     % save as we go through the data so that we can pick up where we left off
                     % save only when we update
                     save(fullfile(folder,outputFname),...
-                        'selectedFeaturesResultsMap','depWithOutputResultsMap');
+                        'selectedFeaturesResultsMap',...
+                        'depWithOutputResultsMap', ...
+                        'interDepTensor');
                 end
                 ovpIdx = ovpIdx + 1;
             end
@@ -640,7 +643,7 @@ elseif(ismac)
 else
     folder = '/home/kiran/ownCloud/PhD/sim_results/synthetic_feature_select';
 end
-outputFname = 'pairwise_synth_results_pairwiseRedundant_timesOpOnly.mat';
+outputFname = 'pairwise_synth_results_pairwiseRedundant_plusAndTimesOp.mat';
 
 % manually generate a left-skewed and right-skewed data, from which we
 % construct an empirical cdf
@@ -672,8 +675,8 @@ fpCell = cell(1,length(cnkOut));
 for jj=1:size(cnkOut,1)
     fpCell{jj} = cnkOut(jj,:);
 end
-% operators = {@plus,@times};
-operators = {@times};
+operators = {@plus,@times};
+% operators = {@times};
 
 % create possibilities for random features
 numPossibleRandomFeatures = 10;
