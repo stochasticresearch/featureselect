@@ -31,7 +31,7 @@ rightSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.9,0.1]);
 % configure the data generation
 numIndependentFeatures = 20;
 numRedundantFeatures = 0;
-numUselessFeatures = 180;
+numUselessFeatures = 80;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
 numSamps = 100;  % run for 250,500

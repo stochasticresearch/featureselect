@@ -52,14 +52,14 @@ function [fea, t] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgsWithOutput
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nd = size(d,2);
-if(nargin<6)
+if(nargin<7)
     KMAX = min(1000,nd); % the # of top features to consider when searching 
                      % using the mRMR algorithm
 else
     KMAX = min(KMAX_in,nd);
 end
 
-if(nargin==7)
+if(nargin==8)
     t = tIn;
 else
     t = zeros(1,nd);
