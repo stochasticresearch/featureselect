@@ -1,4 +1,4 @@
-function [fea] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgs, KMAX_in,tIn)
+function [fea, t] = mrmr_mid(d, f, K, miFunctionHandle, miFunctionArgsWithOutput, miFunctionArgsInterDep, KMAX_in,tIn)
 % The MID scheme of minimum redundancy maximal relevance (mRMR) feature selection
 % 
 % The parameters:
@@ -64,27 +64,35 @@ if(nargin==7)
 else
     t = zeros(1,nd);
     parfor i=1:nd
-        t(i) = miFunctionHandle(d(:,i), f, miFunctionArgs{:});
+%         t(i) = miFunctionHandle(d(:,i), f, miFunctionArgs{:});
+        t(i) = feval(miFunctionHandle,d(:,i),f,miFunctionArgsWithOutput{:});
     end
 end
 
 [~, idxsOriginal] = sort(-t);
 dd = d(:,idxsOriginal(1:KMAX));  % hash the data down for efficiency
 
-fea(1) = 1;
+% fea(1) = 1;
 idxleft = 2:KMAX;
 
 mi_array = nan(KMAX,K);
-for k=2:min(K,nd)
+nloop_iter = min(K,nd);
+fea = nan(1,nloop_iter); fea(1) = 1;
+for k=2:nloop_iter
     ncand = length(idxleft);
-    curlastfea = length(fea);
+%     curlastfea = length(fea);
    
-    t_mi = zeros(1,ncand); 
+    t_mi = zeros(1,ncand);
+    curfea_idx = k-1;
+    lastfea = fea(curfea_idx);
     parfor i=1:ncand
-        t_mi(i) = miFunctionHandle(dd(:,idxleft(i)), f, miFunctionArgs{:}); 
-        mi_array(i,curlastfea) = getmultimi(dd(:,fea(curlastfea)), dd(:,idxleft(i)), miFunctionHandle, miFunctionArgs);
+%         t_mi(i) = miFunctionHandle(dd(:,idxleft(i)), f, miFunctionArgs{:}); 
+        t_mi(i) = feval(miFunctionHandle, dd(:,idxleft(i)), f, miFunctionArgsWithOutput{:}); 
+%         mi_array(i,curlastfea) = getmultimi(dd(:,fea(curlastfea)), dd(:,idxleft(i)), miFunctionHandle, miFunctionArgs);
+        mi_array(i,curfea_idx) = getmultimi(dd(:,lastfea), dd(:,idxleft(i)), miFunctionHandle, miFunctionArgsInterDep);
     end
-    mi_array(idxleft,curlastfea) = mi_array(1:ncand,curlastfea);
+%     mi_array(idxleft,curlastfea) = mi_array(1:ncand,curlastfea);
+    mi_array(idxleft,curfea_idx) = mi_array(1:ncand,curfea_idx);
     c_mi = nanmean(mi_array(idxleft,:),2)';
     
     [~, fea(k)] = max(t_mi(1:ncand) - c_mi(1:ncand));
