@@ -106,7 +106,6 @@ knn_1 = 1;
 knn_6 = 6;
 knn_20 = 20;
 msi = 0.015625; alpha = 0.2; 
-autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
 mine_c = 15;
 mine_alpha = 0.6;
 rdc_k = 20;
@@ -125,7 +124,22 @@ functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @mine_interface_mic;
                        @corr;
                        @rdc;};
-functionArgsCell    = {{0,1,0};
+autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+functionArgsWithOutputCell    = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};
+                       {1};
+                       {};
+                       {mine_alpha,mine_c,'mic_e'};
+                       {};
+                       {rdc_k, rdc_s};};
+autoDetectHybrid = 0; isHybrid = 0; continuousRvIndicator = 0;
+functionArgsInterDepCell    = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
                        {};
                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
                        {knn_1};
@@ -170,7 +184,7 @@ for dIdx=1:length(datasets)
         % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
             tic;
-            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
+            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsWithOutputCell{ii}, functionArgsInterDepCell{ii});
             elapsedTime = toc;
             save(fOut,'featureVec','elapsedTime');
         end
@@ -231,7 +245,6 @@ knn_1 = 1;
 knn_6 = 6;
 knn_20 = 20;
 msi = 0.015625; alpha = 0.2; 
-autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
 mine_c = 15;
 mine_alpha = 0.6;
 rdc_k = 20;
@@ -250,7 +263,22 @@ functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @mine_interface_mic;
                        @corr;
                        @rdc;};
-functionArgsCell    = {{0,1,0};
+autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+functionArgsWithOutputCell    = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};
+                       {1};
+                       {};
+                       {mine_alpha,mine_c,'mic_e'};
+                       {};
+                       {rdc_k, rdc_s};};
+autoDetectHybrid = 0; isHybrid = 0; continuousRvIndicator = 0;
+functionArgsInterDepCell    = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
                        {};
                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
                        {knn_1};
@@ -297,7 +325,7 @@ for dIdx=1:length(datasets)
         % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
             tic;
-            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsCell{ii});
+            featureVec = mrmr_mid(X, y, numFeaturesToSelect, functionHandlesCell{ii}, functionArgsWithOutputCell{ii}, functionArgsInterDepCell{ii});
             elapsedTime = toc;
             save(fOut,'featureVec','elapsedTime');
         end
@@ -322,7 +350,6 @@ knn_1 = 1;
 knn_6 = 6;
 knn_20 = 20;
 msi = 0.015625; alpha = 0.2; 
-autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
 mine_c = 15;
 mine_alpha = 0.6;
 rdc_k = 20;
@@ -341,8 +368,22 @@ functionHandlesCell = {@taukl_cc_mex_interface;
                        @mine_interface_mic;
                        @corr;
                        @rdc};
-
-functionArgsCell    = {{0,1,0};
+autoDetectHybrid = 0; isHybrid = 1; continuousRvIndicator = 0;
+functionArgsWithOutputCell    = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {'type','kendall'};
+                       {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
+                       {knn_1};
+                       {knn_6};
+                       {knn_20};
+                       {};
+                       {};
+                       {1};
+                       {};
+                       {mine_alpha,mine_c,'mic_e'};
+                       {};
+                       {rdc_k, rdc_s};};
+autoDetectHybrid = 0; isHybrid = 0; continuousRvIndicator = 0;
+functionArgsInterDepCell    = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
                        {'type','kendall'};
                        {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
                        {knn_1};
@@ -380,7 +421,7 @@ for dIdx=1:length(datasets)
         % if file exists, don't re-do it!
         if(~exist(fOut,'file'))
             tic;
-            t = mrmr_init_feature_ranking(X, y, functionHandlesCell{ii}, functionArgsCell{ii});
+            t = mrmr_init_feature_ranking(X, y, functionHandlesCell{ii}, functionArgsWithOutputCell{ii}, functionArgsInterDepCell{ii});
             elapsedTime = toc;
             save(fOut,'t','elapsedTime');
         end
