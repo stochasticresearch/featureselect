@@ -6,7 +6,7 @@ rng(123);
 if(ispc)
     folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\synthetic_feature_select';
 elseif(ismac)
-    folder = '/Users/Kiran/ownCloud/PhD/sim_results/synthetic_feature_select';
+    folder = '/Users/karrak1/Documents/erc_paper';
 else
     folder = '/home/kiran/ownCloud/PhD/sim_results/synthetic_feature_select';
 end
@@ -82,6 +82,7 @@ functionHandlesCell = {@taukl_cc_mi_mex_interface;
                        @apMI_interface;
                        @h_mi_interface;
                         };
+% functionHandlesCell = {@h_mi_interface;};
 functionArgs_withOutput_Cell = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
                                 {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
                                 {knn_1};
@@ -90,6 +91,7 @@ functionArgs_withOutput_Cell = {{autoDetectHybrid,isHybrid,continuousRvIndicator
                                 {};
                                 {1};
                                 };
+% functionArgs_withOutput_Cell = {{1};};
 isHybrid = 0;  % we compare against each other continuous features, so it is not hybrid
 functionArgs_interDep_Cell = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
                               {msi,alpha,autoDetectHybrid,isHybrid,continuousRvIndicator};
@@ -99,7 +101,9 @@ functionArgs_interDep_Cell = {{autoDetectHybrid,isHybrid,continuousRvIndicator};
                               {};
                               {1};
                               };
+% functionArgs_interDep_Cell = {{1};};
 fNames = {'taukl','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+% fNames = {'h_mi'};
 
 numFeaturesToSelect = min(50,numRedundantFeatures+numIndependentFeatures);  % maximum # of features to select
 
@@ -154,8 +158,9 @@ for skIdx=1:length(skews)
         R = eye(numIndependentFeatures+1);
         R(numIndependentFeatures+1,1:numIndependentFeatures) = corrVec;
         R(1:numIndependentFeatures,numIndependentFeatures+1) = corrVec;
-        S = nearestSPD(R);
-        R = corrcov(S);
+%         S = nearestSPD(R);
+%         R = corrcov(S);
+        R = corrcov(nearcorr(R));
 
         for mcSimNum=1:numMCSims
             % GENERATE THE DATA
