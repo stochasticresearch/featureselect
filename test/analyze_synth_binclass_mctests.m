@@ -4,27 +4,39 @@ clc;
 dbstop if error;
 
 if(ispc)
-    folder = 'C:\\Users\\Kiran\\ownCloud\\PhD\\sim_results\\synthetic_feature_select';
+    error('unsupported OS!');
 elseif(ismac)
-    folder = '/Users/Kiran/ownCloud/PhD/sim_results/synthetic_feature_select';
+    folder = '/Users/karrak1/Documents/erc_paper';
 else
-    folder = '/home/kiran/ownCloud/PhD/sim_results/synthetic_feature_select';
+    folder = '/home/apluser/stochasticresearch/data/erc_paper';
 end
 
 % the configuration we want to score
 
 numIndependentFeatures = 20;
-numRedundantFeatures = 0;
-numUselessFeatures = 80;
+numRedundantFeatures = 20;
+numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
-fNames = {'taukl','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+fNames = {'cim','knn_1','knn_6','knn_20','ap','h_mi'};
 numSamps = 100;
 numMCSims = 25;
 
+copulaType = 'Gaussian';
+% copula_type = 't';
+% DoF = 2;
+
 % setup output filename
-inputFname = sprintf('res_%d_%d_%d_%d_%d_timesOpOnly.mat',...
-    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
+if(strcmpi(copulaType,'gaussian'))
+    inputFname = sprintf('res_%d_%d_%d_%d_%d_%s_plusOpOnly.mat',...
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
+    numSamps,numMCSims,copulaType);
+elseif(strcmpi(copulaType,'t'))
+    inputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%d_plusOpOnly.mat',...
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
+    numSamps,numMCSims,copulaType, DoF);
+end
+
 load(fullfile(folder,inputFname))
 
 % bar plot configuration
@@ -37,7 +49,7 @@ bw_xlabel = [];
 bw_ylabel = [];
 bw_color_map = parula;
 gridstatus = 'y';
-bw_legend_val = {'\tau_{KL}','CIM','KNN-1','KNN-6','KNN-20','AP','H_{MI}'};
+bw_legend_val = {'CIM','KNN-1','KNN-6','KNN-20','AP','H_{MI}'};
 error_sides = 2;
 legend_type = 'plot';
 legendTextSize = 17;
@@ -48,7 +60,7 @@ for skIdx=1:length(skews)
     sk = skews{skIdx};
     barMatrix_val = zeros(numGroups,numBars);
     barMatrix_err = zeros(numGroups,numBars);
-    bw_title = sk;
+    bw_title = titles{skIdx};
     for dcIdx=1:length(dep_clusters)
         dc = dep_clusters{dcIdx};
         fprintf('***** %s-%s *****\n',sk,dc);
@@ -75,6 +87,7 @@ for skIdx=1:length(skews)
     bwo = barweb(barMatrix_val,barMatrix_err,width,groupnames,bw_title,bw_xlabel,bw_ylabel,...
         bw_color_map,gridstatus,bw_legend,error_sides,legend_type,...
         legendTextSize, labelTextSize, groupTextSize);
+    bwo.legend
 %     set(gca, 'xticklabel', groupnames, ...
 %         'box', 'off', ...
 %         'ticklength', [0 0], ...

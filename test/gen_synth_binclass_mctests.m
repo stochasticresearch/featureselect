@@ -3,35 +3,30 @@ clc;
 dbstop if error;
 rng(123);
 
+% parpool(6);
+
 if(ispc)
     error('unsupported OS!');
 elseif(ismac)
     folder = '/Users/karrak1/Documents/erc_paper';
 else
-    folder = '/home/karrak1/stochasticresearch/data/erc_paper';
+    folder = '/home/apluser/stochasticresearch/data/erc_paper';
 end
 
-% manually generate a left-skewed and right-skewed data, from which we
-% construct an empirical cdf
-leftSkewData = pearsrnd(0,1,-1,3,5000,1);
-rightSkewData = pearsrnd(0,1,1,3,5000,1);
-[fLeftSkew,xiLeftSkew] = emppdf(leftSkewData,0);
-FLeftSkew = empcdf(xiLeftSkew,0);
-[fRightSkew,xiRightSkew] = emppdf(rightSkewData,0);
-FRightSkew = empcdf(xiRightSkew,0);
-
 % distributions which make up the marginal distributions
-leftSkewContinuousDistInfo = rvEmpiricalInfo(xiLeftSkew,fLeftSkew,FLeftSkew,0);
-rightSkewContinuousDistInfo = rvEmpiricalInfo(xiRightSkew,fRightSkew,FRightSkew,0);
-noSkewContinuousDistInfo = makedist('Normal');
+% see here: https://probabilityandstats.files.wordpress.com/2015/05/uniform-densities.jpg
+% for mapping between the skew distributions & beta, or just plot pdf
+leftSkewContinuousDistInfo = makedist('Beta', 'a', 20, 'b', 4);
+rightSkewContinuousDistInfo = makedist('Beta', 'a', 4, 'b', 20);
+noSkewContinuousDistInfo = makedist('Beta', 'a', 10, 'b', 10);
 leftSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.1,0.9]);
 noSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.5,0.5]);
 rightSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.9,0.1]);
 
 % configure the data generation
 numIndependentFeatures = 20;
-numRedundantFeatures = 0;
-numUselessFeatures = 80;
+numRedundantFeatures = 20;
+numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
 numSamps = 100;  % run for 250,500
@@ -61,11 +56,22 @@ randomFeaturesCell{9} = makedist('Uniform');
 randomFeaturesCell{10} = makedist('Weibull');
 
 % setup monte-carlo simulation configuration
-numMCSims = 25;
+numMCSims = 10;
+% copula_type='Gaussian';
+copula_type = 't';
+DoF = 2;
 
 % setup output filename
-outputFname = sprintf('res_%d_%d_%d_%d_%d_plusOpOnly.mat',...
-    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,numSamps,numMCSims);
+if(strcmpi(copula_type,'gaussian'))
+    outputFname = sprintf('res_%d_%d_%d_%d_%d_%s_plusOpOnly.mat',...
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
+    numSamps,numMCSims,copula_type);
+elseif(strcmpi(copula_type,'t'))
+    outputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%d_plusOpOnly.mat',...
+    numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
+    numSamps,numMCSims,copula_type, DoF);
+end
+
 
 % setup estimators and feature selection framework
 knn_1 = 1;
@@ -158,13 +164,17 @@ for skIdx=1:length(skews)
         R = eye(numIndependentFeatures+1);
         R(numIndependentFeatures+1,1:numIndependentFeatures) = corrVec;
         R(1:numIndependentFeatures,numIndependentFeatures+1) = corrVec;
-%         S = nearestSPD(R);
-%         R = corrcov(S);
         R = corrcov(nearcorr(R));
 
         for mcSimNum=1:numMCSims
             % GENERATE THE DATA
-            U = copularnd('Gaussian',R,numSamps);
+            if(strcmpi(copula_type,'Gaussian'))
+                U = copularnd('Gaussian',R,numSamps);
+            elseif(strcmpi(copula_type,'t'))
+                U = copularnd('t',R,DoF,numSamps);
+            else
+                U = copularnd_featselect(copula_type,corrVec,numSamps);
+            end
             X = zeros(numSamps,numIndependentFeatures+numRedundantFeatures+numUselessFeatures);
             
             % assign marginal distributions
