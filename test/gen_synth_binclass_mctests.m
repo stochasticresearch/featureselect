@@ -13,16 +13,6 @@ else
     folder = '/home/apluser/stochasticresearch/data/erc_paper';
 end
 
-% distributions which make up the marginal distributions
-% see here: https://probabilityandstats.files.wordpress.com/2015/05/uniform-densities.jpg
-% for mapping between the skew distributions & beta, or just plot pdf
-leftSkewContinuousDistInfo = makedist('Beta', 'a', 20, 'b', 4);
-rightSkewContinuousDistInfo = makedist('Beta', 'a', 4, 'b', 20);
-noSkewContinuousDistInfo = makedist('Beta', 'a', 10, 'b', 10);
-leftSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.1,0.9]);
-noSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.5,0.5]);
-rightSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[0.9,0.1]);
-
 % configure the data generation
 numIndependentFeatures = 20;
 numRedundantFeatures = 20;
@@ -30,6 +20,29 @@ numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
 numSamps = 100;  % run for 250,500
+% choose your skew value here - which configures the distributions accordingly!
+desired_skew = 1;
+if(desired_skew==1)
+    leftSkew_alpha = 12; leftSkew_beta = 2;
+    noSkew_alpha = 10; noSkew_beta = 10;
+    rightSkew_alpha = 2; rightSkew_beta = 12;
+    leftSkew_p = .28; noSkew_p = 0.5; 
+    rightSkew_p = 1-leftSkew_p;
+else
+    error('Skew value not supported!'); 
+end
+
+% distributions which make up the marginal distributions
+% see here: https://probabilityandstats.files.wordpress.com/2015/05/uniform-densities.jpg
+% for mapping between the skew distributions & beta, or just plot pdf
+% the constants are set such that the skewness of both the discrete & 
+% continuous distributions is +.99 & -.99.
+leftSkewContinuousDistInfo = makedist('Beta', 'a', leftSkew_alpha, 'b', leftSkew_beta);
+rightSkewContinuousDistInfo = makedist('Beta', 'a', rightSkew_alpha, 'b', rightSkew_beta);
+noSkewContinuousDistInfo = makedist('Beta', 'a', noSkew_alpha, 'b', noSkew_beta);
+leftSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[leftSkew_p,1-leftSkew_p]);
+noSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[noSkew_p,1-noSkew_p]);
+rightSkewDiscreteDistInfo = makedist('Multinomial','probabilities',[rightSkew_p,1-rightSkew_p]);
 
 % create redundant feature possibilities
 cnkOut = combnk(1:numIndependentFeatures,2);  % only pairwise operations

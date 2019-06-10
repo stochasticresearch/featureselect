@@ -18,13 +18,13 @@ numRedundantFeatures = 20;
 numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
-fNames = {'cim','knn_1','knn_6','knn_20','ap','h_mi'};
-numSamps = 100;
+fNames = {'taukl','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+numSamps = 250;
 numMCSims = 25;
 
-copulaType = 'Gaussian';
-% copula_type = 't';
-% DoF = 2;
+% copulaType = 'Gaussian';
+copulaType = 't';
+DoF = 2;
 
 % setup output filename
 if(strcmpi(copulaType,'gaussian'))
@@ -49,7 +49,7 @@ bw_xlabel = [];
 bw_ylabel = [];
 bw_color_map = parula;
 gridstatus = 'y';
-bw_legend_val = {'CIM','KNN-1','KNN-6','KNN-20','AP','H_{MI}'};
+bw_legend_val = {'\tau_{KL}', 'CIM','KNN-1','KNN-6','KNN-20','AP','H_{MI}'};
 error_sides = 2;
 legend_type = 'plot';
 legendTextSize = 17;
@@ -81,10 +81,13 @@ for skIdx=1:length(skews)
     else
         bw_legend = [];
     end
+    max_col = max(barMatrix_val+barMatrix_err,[], 2);
 % 	figure;
 %     bw_legend = bw_legend_val;
 %     bw_legend = '';
-    bwo = barweb(barMatrix_val,barMatrix_err,width,groupnames,bw_title,bw_xlabel,bw_ylabel,...
+    bwo = barweb(barMatrix_val./max_col,...
+        barMatrix_err./max_col,...
+        width,groupnames,bw_title,bw_xlabel,bw_ylabel,...
         bw_color_map,gridstatus,bw_legend,error_sides,legend_type,...
         legendTextSize, labelTextSize, groupTextSize);
     bwo.legend
