@@ -19,7 +19,7 @@ numRedundantFeatures = 20;
 numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
-numSamps = 100;  % run for 250,500
+numSamps = 250;  % run for 100,250,500
 % choose your skew value here - which configures the distributions accordingly!
 desired_skew = 1;
 if(desired_skew==1)
@@ -73,10 +73,10 @@ randomFeaturesCell{9} = makedist('Uniform');
 randomFeaturesCell{10} = makedist('Weibull');
 
 % setup monte-carlo simulation configuration
-numMCSims = 10;
-% copula_type='Gaussian';
-copula_type = 't';
-DoF = 2;
+numMCSims = 25;
+copula_type='Gaussian';
+% copula_type = 't';
+% DoF = 2;
 
 % setup output filename
 if(strcmpi(copula_type,'gaussian'))
