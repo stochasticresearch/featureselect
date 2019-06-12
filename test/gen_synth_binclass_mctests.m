@@ -31,6 +31,10 @@ if(desired_skew==1)
 else
     error('Skew value not supported!'); 
 end
+y_data_cfg = 'p1n1';  % can be p1n1, meaning Y \in {-1,1} or
+                      % Y \in {1,2}.  We don't know if this matters to the
+                      % estimators or not, but we want to find out
+
 
 % distributions which make up the marginal distributions
 % see here: https://probabilityandstats.files.wordpress.com/2015/05/uniform-densities.jpg
@@ -76,15 +80,14 @@ DoF = 2;
 
 % setup output filename
 if(strcmpi(copula_type,'gaussian'))
-    outputFname = sprintf('res_%d_%d_%d_%d_%d_%s_plusOpOnly.mat',...
+    outputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%0.02f_%s_plusOpOnly.mat',...
     numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
-    numSamps,numMCSims,copula_type);
+    numSamps,numMCSims,copula_type, desired_skew, y_data_cfg);
 elseif(strcmpi(copula_type,'t'))
-    outputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%d_plusOpOnly.mat',...
+    outputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%d_%0.02f_%s_plusOpOnly.mat',...
     numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
-    numSamps,numMCSims,copula_type, DoF);
+    numSamps,numMCSims,copula_type, DoF, desired_skew, y_data_cfg);
 end
-
 
 % setup estimators and feature selection framework
 knn_1 = 1;
@@ -198,7 +201,13 @@ for skIdx=1:length(skews)
             end
             % assign output
             y = icdf(dDistObj,U(:,end));
-            y(y==1) = -1; y(y==2) = 1;
+            if strcmpi(y_data_cfg, 'p1n1')
+                y(y==1) = -1; y(y==2) = 1;
+            elseif strcmpi(y_data_cfg, 'p2n1')
+                % do nothing, data is originally in this way
+            else
+                error('unknown y_data_cfg specified!');
+            end
             
             % create redundant features
             fpCellIdxVec = randsample(1:length(fpCell),numRedundantFeatures);

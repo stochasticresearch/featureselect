@@ -18,23 +18,31 @@ numRedundantFeatures = 20;
 numUselessFeatures = 160;
 skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
-fNames = {'taukl','cim','knn_1','knn_6','knn_20','ap','h_mi'};
+fNames = {'cim','knn_1','knn_6','knn_20','ap','h_mi'};
 numSamps = 250;
-numMCSims = 25;
+numMCSims = 50;
 
 % copulaType = 'Gaussian';
 copulaType = 't';
-DoF = 2;
+DoF = 3;
+
+desired_skew = 1;
+y_data_cfg = 'p1n1';  % can be p1n1, meaning Y \in {-1,1} or
+                      % Y \in {1,2}.  We don't know if this matters to the
+                      % estimators or not, but we want to find out
+
 
 % setup output filename
 if(strcmpi(copulaType,'gaussian'))
-    inputFname = sprintf('res_%d_%d_%d_%d_%d_%s_plusOpOnly.mat',...
+    inputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%0.02f_%s_plusOpOnly.mat',...
     numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
-    numSamps,numMCSims,copulaType);
+    numSamps,numMCSims,copulaType, desired_skew, y_data_cfg);
+    title_str = 'Gaussian';
 elseif(strcmpi(copulaType,'t'))
-    inputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%d_plusOpOnly.mat',...
+    inputFname = sprintf('res_%d_%d_%d_%d_%d_%s_%d_%0.02f_%s_plusOpOnly.mat',...
     numIndependentFeatures,numRedundantFeatures,numUselessFeatures,...
-    numSamps,numMCSims,copulaType, DoF);
+    numSamps,numMCSims,copulaType, DoF, desired_skew, y_data_cfg);
+    title_str = sprintf('T - %d', DoF);
 end
 
 load(fullfile(folder,inputFname))
@@ -49,7 +57,7 @@ bw_xlabel = [];
 bw_ylabel = [];
 bw_color_map = parula;
 gridstatus = 'y';
-bw_legend_val = {'\tau_{KL}', 'CIM','KNN-1','KNN-6','KNN-20','AP','H_{MI}'};
+bw_legend_val = {'CIM','KNN-1','KNN-6','KNN-20','AP','H_{MI}'};
 error_sides = 2;
 legend_type = 'plot';
 legendTextSize = 17;
@@ -85,6 +93,9 @@ for skIdx=1:length(skews)
 % 	figure;
 %     bw_legend = bw_legend_val;
 %     bw_legend = '';
+    if(skIdx==2)
+        bw_title = sprintf('%s\n%s',title_str,bw_title);
+    end
     bwo = barweb(barMatrix_val./max_col,...
         barMatrix_err./max_col,...
         width,groupnames,bw_title,bw_xlabel,bw_ylabel,...
