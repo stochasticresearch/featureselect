@@ -1,10 +1,10 @@
-function [score_vec] = score_synthetic_fs_v3(X,numIndepFeatures,numRedundantFeatures)
+function [score_vec] = score_synthetic_fs_v4(X,numIndepFeatures,numRedundantFeatures)
 
 numFeaturesToScoreOn = numIndepFeatures+numRedundantFeatures;
 
-indepFeatureSelectScore = 0;
-redundantFeatureSelectScore = 1;
-remainderScore = 0;
+indepFeatureSelectScore = 1;
+redundantFeatureSelectScore = 0;
+remainderScore = -1;
 % in this scoring mechanism, you just get points for every relevant
 % feature you select, with a configurable difference between whether you 
 % selected a redundant feature or a direct feature

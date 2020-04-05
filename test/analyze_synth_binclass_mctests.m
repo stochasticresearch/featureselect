@@ -20,11 +20,11 @@ skews = {'left_skew','no_skew','right_skew'};
 dep_clusters = {'lo_cluster','med_cluster','hi_cluster','all_cluster'};
 fNames = {'cim','knn_1','knn_6','knn_20','ap','h_mi'};
 numSamps = 250;
-numMCSims = 50;
+numMCSims = 25;
 
-% copulaType = 'Gaussian';
-copulaType = 't';
-DoF = 3;
+copulaType = 'Gaussian';
+% copulaType = 't';
+% DoF = 3;
 
 desired_skew = 1;
 y_data_cfg = 'p1n1';  % can be p1n1, meaning Y \in {-1,1} or
@@ -77,7 +77,9 @@ for skIdx=1:length(skews)
             % get the selected matrix
             X = selectedFeaturesResultsMap(sk,dc,estimator);
 %             score_vec = score_synthetic_fs(X,numIndependentFeatures,numRedundantFeatures,numUselessFeatures);
-            score_vec = score_synthetic_fs_v2(X,numIndependentFeatures,numRedundantFeatures);
+%             score_vec = score_synthetic_fs_v2(X,numIndependentFeatures,numRedundantFeatures);
+            score_vec = score_synthetic_fs_v3(X,numIndependentFeatures,numRedundantFeatures);
+%             score_vec = score_synthetic_fs_v4(X,numIndependentFeatures,numRedundantFeatures);
             fprintf('\t %s-->[%0.02f,%0.02f]\n',estimator,mean(score_vec),std(score_vec));
             barMatrix_val(dcIdx,fIdx) = mean(score_vec);
             barMatrix_err(dcIdx,fIdx) = std(score_vec)/2;
@@ -120,6 +122,46 @@ for skIdx=1:length(skews)
 
 end
 
+% plot the inter-dep
+figure;
+sk_str = 'no_skew'; dep_range = 'hi_cluster';
+subplot(2,2,1);
+imagesc(squeeze(mean(interDepResultsMap(sk_str, dep_range, 'cim'))))
+colorbar
+c1 = caxis;
+subplot(2,2,2);
+imagesc(squeeze(mean(interDepResultsMap(sk_str, dep_range, 'knn_20'))))
+colorbar
+c2 = caxis;
+subplot(2,2,3);
+imagesc(squeeze(mean(interDepResultsMap(sk_str, dep_range, 'ap'))))
+colorbar
+c3 = caxis;
+subplot(2,2,4);
+imagesc(squeeze(mean(interDepResultsMap(sk_str, dep_range, 'h_mi'))))
+colorbar
+c4 = caxis;
+
+cc = [min([c1 c2 c3 c4]), max([c1 c2 c3 c4])];
+caxis(cc)
+
+subplot(2,2,2)
+colorbar off
+subplot(2,2,3)
+colorbar off
+subplot(2,2,4)
+colorbar off
+
+% plot dep against the Y
+figure;
+plot(squeeze(mean(depWithOutputResultsMap(sk_str, dep_range, 'cim'))))
+hold on;
+plot(squeeze(mean(depWithOutputResultsMap(sk_str, dep_range, 'knn_20'))))
+hold on;
+plot(squeeze(mean(depWithOutputResultsMap(sk_str, dep_range, 'ap'))))
+hold on;
+plot(squeeze(mean(depWithOutputResultsMap(sk_str, dep_range, 'h_mi'))))
+legend('cim','knn_20','ap','h_mi')
 
 %% load and plot the results of the pairwise mapping
 

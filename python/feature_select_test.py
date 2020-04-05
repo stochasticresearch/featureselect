@@ -5,7 +5,7 @@ An example file to show how to use the feature-selection code in ml_lib
 '''
 from tqdm import tqdm
 
-from sklearn.datasets import fetch_mldata
+from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn import svm
@@ -30,7 +30,7 @@ if __name__=='__main__':
     RANDOM_SEED = 123
     MAX_ITER = 1000
 
-    leuk = fetch_mldata('leukemia', transpose_data=True)
+    leuk = fetch_openml('leukemia')
     X = leuk['data']
     y = leuk['target']
 

@@ -97,7 +97,7 @@ def feature_select(X,y,num_features_to_select=None,K_MAX=1000,estimator=depmeas.
     # X_subset = load(X_subset_fname, mmap_mode='r')
 
     selected_feature_idxs    = np.zeros(num_selected_features,dtype=int)
-    remaining_candidate_idxs = range(1,K_MAX_internal)
+    remaining_candidate_idxs = list(range(1,K_MAX_internal))
     
     # mi_matrix = np.empty((K_MAX_internal,num_selected_features-1))
     # mi_matrix[:] = np.nan
