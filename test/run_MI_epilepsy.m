@@ -5,20 +5,12 @@ clc;
 dbstop if error;
 
 % load X & y from dataset
-folder='/home/karrak1/rnaseq';
-load(fullfile(folder, 'X.mat'));  % loads variables X, y
+folder='/home/karrak1/erc_datasets/epilepsy';
+load(fullfile(folder, 'data.mat'));  % loads variables X, y
+X = double(X);
+y = double(transpose(y));
 
-% % split into train/test (80/20)
-% cv = cvpartition(size(X,1),'HoldOut',0.2);
-% idx = cv.test;
-% X_train = X(~idx,:);
-% y_train = y(~idx,:);
-% X_valid = X(idx,:);
-% y_valid = y(idx,:);
-% % save this as a X_all.mat
-% save(fullfile(folder, 'X_all.mat'), 'X_train', 'y_train', 'X_valid', 'y_valid');
-
-dataset = 'rnaseq';
+dataset = 'epilepsy';
 fNames = {'taukl','tau','cim','knn_1','knn_6','knn_20','vme','ap','h_mi',...
     'dCor','MIC','corr','RDC'};
 algosToRun = {'cim','knn_1','knn_6','knn_20','vme','ap','h_mi'};
@@ -74,7 +66,9 @@ functionArgsInterDepCell    = {{autoDetectHybrid,isHybrid,continuousRvIndicator}
 % we don't do splitting between 50 & 75% here, b/c this is multi-class
 dispstat('','init'); % One time only initialization
 dispstat(sprintf('Begining the simulation...\n'),'keepthis','timestamp');
-load(fullfile(folder, 'X.mat'));
+load(fullfile(folder, 'data.mat'));
+X = double(X);
+y = double(transpose(y));
 
 numFeaturesToSelect = 50;
 for ii=1:length(algosToRun)
